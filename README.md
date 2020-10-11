@@ -4,11 +4,11 @@ _A Minecraft Bukkit plugin framework for modular functionnalities oriented towar
 ## About ##
 This project provides a framework to quickly develop new plugin features for minecraft servers.
 
-It was originally develop for the specific purpose of aquilon-mc.fr minecraft server.
+It was originally developed for the specific purpose of *aquilon-mc.fr* minecraft server.
 Since it has closed down the choice was made to render the code publicly available so that it can be used by others.
 
 This project remains actively developed and new features are often added.
-If you would like to contribute please let us know by opening an issue, and we will gladly orient you to get started.
+If you would like to contribute please let us know by opening an issue, and we will gladly help you get started.
 
 As of now the project still severely lacks documentation. In an effort to help user get started with the project
 we recently started redacting a proper documentation. Feel free to help us out.
@@ -35,7 +35,7 @@ to expose public routes.
 An injury manager. Keeps track of injured players and rolls new injuries automatically.
 
 ### AQLCharacters ###
-_Stil in Development_
+_Still in Development_
 
 A roleplay character sheet directly interfaced with the game. It uses AQLVox to expose an API backend
 and a VueJS application as a frontend.
