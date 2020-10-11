@@ -1,0 +1,32 @@
+#////////////////////////////////////////O\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#                        Fichier de configuration d'AQLVox
+#
+# Port : 20088 par défaut
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\O///////////////////////////////////////////
+
+port: 20088
+modules:
+  enable:
+    - fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.About
+    - fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Auth
+    - fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Players
+    - fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Server
+    - fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Websocket
+auth:
+  token:
+    secret: 'FIXME_this_is_a_weak_secret'
+  standard:
+    admin:
+      password: 'aSuperStrongPassword'
+      permissions:
+        - all
+    default:
+      permissions:
+        - nav.about.version.get
+        - nav.auth.info.get
+        - nav.auth.perms.get
+        - nav.players.root
+        - nav.players.list
+        - nav.players.count
+        - nav.players.limit
+        - nav.server.time.*

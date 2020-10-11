@@ -1,0 +1,65 @@
+#////////////////////////////////////////O\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#                        Fichier de configuration d'AquilonThings
+#
+# Base de donnée : MySQL uniquement.
+# address : adresse de la bdd (localhost ou ip).
+# port : Port d'accès au serveur (3306 par défaut).
+# user : Nom d'utilisateur MySQL (root ou compte custom).
+# password : Mot de passe de l'utilisateur (laisser vide si pas de mot de passe).
+# base :  Base de donnée utilisée. Vous devez la créer manuellement. Les tables et
+# l'utilisateur "client" seront générés automatiquement par la suite.
+#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\O///////////////////////////////////////////
+database:
+  address: <address>
+  port: <port>
+  user: <username>
+  password: <password>
+  base: <database>
+
+databasePhpBB:
+  address: <address>
+  port: <port>
+  user: <username>
+  password: <password>
+  base: <database>
+
+groups:
+  default: Visiteur
+  list:
+#    9: Membre
+
+regionBorders:
+#  world: zone_spawn
+
+mainMap: world
+
+AQLCharacters:
+  chars:
+    max: 3
+  skins:
+    folder: '/partage/minecraft/skins'
+    max: 5
+
+channels:
+  Global:
+    nick: 'G'
+    color: '7'
+    format: '{color}[{nick}] {prefix}{sender}{color}: {message}'
+
+emotes:
+  - assis
+  - allongé
+  - coucou
+
+noble:
+#  mapNoble: <mapName>
+#  allowedMaps:
+#    - <mapName>
+
+fire:
+  alert:
+    radius: 4
+    minBlocksPlayer: 16
+    minBlocksStaff: 32
+    delay: 300

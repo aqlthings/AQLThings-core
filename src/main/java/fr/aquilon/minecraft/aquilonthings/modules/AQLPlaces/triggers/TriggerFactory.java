@@ -1,0 +1,51 @@
+package fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers;
+
+import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
+import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places.Place;
+
+public class TriggerFactory {
+
+	/**
+	 * Retourne l'objet trigger correspondant au type demandé.
+	 * @param db
+	 * @param id
+	 * @param type
+	 * @param p
+	 * @param name
+	 * @param state
+	 * @param log
+	 * @return trigger
+	 */
+	public Trigger getTrigger(DatabaseConnector db, int id, String type, Place p, String name, boolean state, ModuleLogger log) {
+		try {
+			Trigger trg;
+			switch(TriggerTypeEnum.valueOf(type)){
+				case LOCALISATION:
+					trg = new TriggerLocalisation(id, p, name, state, log);
+					break;
+				case COMMAND:
+					trg = new TriggerCommand(id, p, name, state, log);
+					break;
+				case EXIT_COMMAND:
+					trg = new TriggerExitCommand(id, p, name, state, log);
+					break;
+				case COMMAND_CYCLIC:
+					trg = new TriggerCommandCyclic(id, p, name, state, log);
+					break;
+				case EVENT_INFO:
+					trg = new TriggerEventInfo(id, p, name, state, log);
+					break;
+				default:
+					log.mWarning("Unknown trigger type '"+type+"' for trigger "+id+" !");
+					return null;
+			}
+			trg.retrieveParamsFromDB(db);
+			return trg;
+		} catch (Exception e) {
+			log.mWarning("Error while retrieving trigger "+id+" > "+e.getClass().getName()+": "+e.getMessage());
+		}
+		return null;
+	}
+	
+}

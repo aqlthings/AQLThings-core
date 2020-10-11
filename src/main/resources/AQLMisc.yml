@@ -1,0 +1,35 @@
+#/////////////////////////O\\\\\\\\\\\\\\\\\\\\\\\\\
+#              AQLMisc config file
+#\\\\\\\\\\\\\\\\\\\\\\\\\O/////////////////////////
+
+door:
+  # When this option is enabled zombie cannot break doors
+  # Default value:
+  #preventBreaking: false
+
+food:
+  # When this option is enabled visitors won't loose food
+  # Visitors are players that have the 'aqlthings.visiteur' permission
+  # Default value:
+  #disableVisitors: false
+
+  # When this option is enabled a suicide won't regenerate your food level
+  # This means that the food level is saved before your death and when you respawn
+  # your previous food level is restored. In order to prevent players from dying in loop
+  # because of a lack of food players will respawn with a minimum food level of 6.
+  # Default value:
+  #preventSuicideRegen: false
+
+death:
+  # When this setting is greater than 0 player killing another player have a chance of
+  # dropping their victims head.
+  # Example: dropHeadChance = 20, When killing another player I have a 1/20 chance of dropping his head.
+  # Default value:
+  #dropHeadChance: 0
+
+  # By default minecraft announces the death message globally, using this option you can either
+  # disable the death message completely (messageRadius = 0) or set it to a custom radius around the death site.
+  # If the radius is greater than 0, only players in the radius, the dead player, and the staff will be warned
+  # about the death.
+  # Default value:
+  #messageRadius: -1

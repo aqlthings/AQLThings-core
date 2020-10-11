@@ -1,0 +1,13 @@
+name: AquilonThings
+version: 3.1.0
+api-version: "1.15"
+description: AquilonThings est le framework plugin d'Aquilon
+website: https://www.aquilon-mc.fr/
+main: fr.aquilon.minecraft.aquilonthings.AquilonThings
+author: Termm, Billi
+prefix: AqlThings
+depend: [PermissionsEx]
+commands:
+  aqlthings:
+    description: Gestion d'AquilonThings
+    usage: /aquilon (reload (all | config) | stop (all | <module>))
