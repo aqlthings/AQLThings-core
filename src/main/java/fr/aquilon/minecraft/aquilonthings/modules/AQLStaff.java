@@ -113,7 +113,7 @@ public class AQLStaff implements IModule {
                     }
                     player = Bukkit.getOfflinePlayer(uuid);
                 }
-                ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+                ItemStack head = new ItemStack(Material.SKULL_ITEM);
                 SkullMeta headMeta = (SkullMeta) head.getItemMeta();
                 headMeta.setOwningPlayer(player);
                 head.setItemMeta(headMeta);

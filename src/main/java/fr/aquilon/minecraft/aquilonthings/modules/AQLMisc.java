@@ -385,7 +385,7 @@ public class AQLMisc implements IModule {
 		if (event.getEntity().getKiller() != null && dropHeadChance > 0) {
 			// Check if we drop the player head when he was killed
 			if (new Random().nextInt(dropHeadChance) == 0) {
-				ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+				ItemStack head = new ItemStack(Material.SKULL_ITEM);
 				SkullMeta headMeta = (SkullMeta) head.getItemMeta();
 				headMeta.setOwningPlayer(p);
 				head.setItemMeta(headMeta);

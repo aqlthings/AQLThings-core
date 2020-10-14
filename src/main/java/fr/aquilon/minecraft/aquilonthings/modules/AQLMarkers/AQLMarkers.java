@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -492,13 +493,15 @@ public class AQLMarkers implements IModule {
 		else {
             if (!args[0].equals("main")) group = getGroup(args[0]);
 			markerName = args[1];
-			if (args.length > 2) try {
-				targets = Bukkit.selectEntities(sender, args[2]).stream()
-						.filter(e -> e instanceof Player).map(e -> (Player) e).collect(Collectors.toList());
-			} catch (IllegalArgumentException e) {
-				sender.sendMessage(ChatColor.YELLOW+"Invalid target selector: "+e.getMessage());
-				return true;
-			}
+			if (args.length > 2) {
+			    if (args[2].equals("*")) targets = new ArrayList<>(Bukkit.getOnlinePlayers());
+			    else {
+			        String names = Utils.joinStrings(args, ",", 2);
+			        targets = Bukkit.getOnlinePlayers().stream()
+                            .filter(p -> names.contains(p.getName()))
+                            .collect(Collectors.toList());
+                }
+            }
 		}
 		if (group == null) {
 			sender.sendMessage(ChatColor.YELLOW+"Unknown marker group");

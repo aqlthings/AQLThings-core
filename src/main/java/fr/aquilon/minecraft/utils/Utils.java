@@ -13,9 +13,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.json.JSONObject;
-import ru.tehkode.permissions.PermissionGroup;
-import ru.tehkode.permissions.PermissionUser;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -69,6 +66,7 @@ public class Utils {
      */
     public static String getPlayerColor(UUID playerUUID) {
         //Récupération du préfixe dans les permissions
+        /* // FIXME: Disabled player colors, missing PermEx -> TODO: replace with LuckPerms
         PermissionUser user = PermissionsEx.getPermissionManager().getUser(playerUUID);
         if (user==null) return "";
         String prefix = user.getPrefix();
@@ -77,6 +75,8 @@ public class Utils {
             if (groups.size() > 0) prefix = groups.get(0).getPrefix();
         }
         return ChatColor.translateAlternateColorCodes('&', prefix);
+        */
+        return ChatColor.WHITE.toString();
     }
 
     public static Thread threadFromID(long id) {

@@ -134,7 +134,7 @@ public class JSONUtils {
         res.put("humidity", b.getHumidity());
         res.put("light", b.getLightLevel());
         res.put("skyLight", b.getLightFromSky());
-        res.put("block", b.getType().getKey().toString());
+        res.put("block", b.getType().name());
         res.put("liquid", b.isLiquid());
         return res;
     }

@@ -162,7 +162,7 @@ public class Players extends APIModule {
                 continue;
             }
             JSONObject item = new JSONObject();
-            item.put("id", i.getType().getKey().toString());
+            item.put("id", i.getType().name());
             //item.put("meta", i.getItemMeta().serialize()); // TODO: find a way to get NBT
             item.put("count", i.getAmount());
             if (i.getItemMeta().hasDisplayName()) item.put("name", i.getItemMeta().getDisplayName());
@@ -172,7 +172,7 @@ public class Players extends APIModule {
                 Map<Enchantment, Integer> enchs = i.getItemMeta().getEnchants();
                 for (Enchantment e : enchs.keySet()) {
                     JSONObject ench = new JSONObject();
-                    ench.put("id", e.getKey().toString());
+                    ench.put("id", e.getName());
                     ench.put("name", e.toString());
                     ench.put("level", enchs.get(e));
                     enchants.put(ench);

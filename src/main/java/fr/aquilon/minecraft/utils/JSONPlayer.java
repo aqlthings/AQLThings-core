@@ -3,10 +3,7 @@ package fr.aquilon.minecraft.utils;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.json.JSONObject;
-import ru.tehkode.permissions.PermissionGroup;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -35,8 +32,9 @@ public class JSONPlayer implements JSONExportable {
         UUID uuid = p.getUniqueId();
         res.put("uuid", uuid.toString().replaceAll("-",""));
         res.put("name", p.getName());
-        List<PermissionGroup> groups =  PermissionsEx.getPermissionManager().getUser(uuid).getParents();
-        res.put("rank", groups.size()>0 ? groups.get(0).getName() : JSONObject.NULL);
+        //List<PermissionGroup> groups =  PermissionsEx.getPermissionManager().getUser(uuid).getParents();
+        //res.put("rank", groups.size()>0 ? groups.get(0).getName() : JSONObject.NULL);
+        res.put("rank", "default"); // TODO: Resolve player rank
         String color = Utils.getPlayerColor(uuid);
         res.put("color", color.length()>1 ? JSONUtils.jsonColor(color.charAt(1)) : JSONObject.NULL);
         res.put("online", p.isOnline());
