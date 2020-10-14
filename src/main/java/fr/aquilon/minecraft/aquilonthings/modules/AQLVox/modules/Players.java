@@ -30,7 +30,6 @@ import java.util.UUID;
  *
  * @author Billi
  */
-@SuppressWarnings("unchecked")
 public class Players extends APIModule {
     public static final String MODULE_NAME = "players";
 

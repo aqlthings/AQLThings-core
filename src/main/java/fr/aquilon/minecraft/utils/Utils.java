@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -49,8 +50,8 @@ public class Utils {
         String url = "https://api.mojang.com/users/profiles/minecraft/"+name;
         try {
             JSONObject json = httpGetJson(new URL(url));
-            return UUID.fromString(addUuidDashes(json.getString("id")));
-        } catch (IOException e) {
+            return UUID.fromString(Objects.requireNonNull(addUuidDashes(json.getString("id"))));
+        } catch (Throwable e) {
             AquilonThings.LOGGER.log(Level.INFO, AquilonThings.LOG_PREFIX+" Unable to find UUID for \""+name+"\"", e);
             return null;
         }
@@ -79,10 +80,8 @@ public class Utils {
     }
 
     public static Thread threadFromID(long id) {
-        Iterator<Thread> i = Thread.getAllStackTraces().keySet().iterator();
-        while(i.hasNext()) {
-            Thread t = i.next();
-            if(t.getId()==id) return t;
+        for (Thread t : Thread.getAllStackTraces().keySet()) {
+            if (t.getId() == id) return t;
         }
         return null;
     }
@@ -169,7 +168,7 @@ public class Utils {
 
         File outFile = new File(AquilonThings.instance.getDataFolder(), resourcePath);
         int lastIndex = resourcePath.lastIndexOf('/');
-        File outDir = new File(AquilonThings.instance.getDataFolder(), resourcePath.substring(0, lastIndex >= 0 ? lastIndex : 0));
+        File outDir = new File(AquilonThings.instance.getDataFolder(), resourcePath.substring(0, Math.max(lastIndex, 0)));
 
         if (!outDir.exists()) {
             outDir.mkdirs();
@@ -279,7 +278,7 @@ public class Utils {
      * @return The string decorated
      */
     public static String decorateSubstringsIgnoreCase(String source, String search, String prefix, String suffix) {
-        String res = "";
+        StringBuilder res = new StringBuilder();
         String sourceLo = source.toLowerCase();
         String searchLo = search.toLowerCase();
         int index = sourceLo.indexOf(searchLo);
@@ -288,11 +287,11 @@ public class Utils {
             int prevEndIndex = endIndex;
             endIndex = index+search.length();
             String sub = source.substring(index, endIndex);
-            res += ( index>0 ? source.substring(prevEndIndex,index) : "" ) + prefix+sub+suffix;
+            res.append(index > 0 ? source.substring(prevEndIndex, index) : "").append(prefix).append(sub).append(suffix);
             index = sourceLo.indexOf(searchLo, endIndex);
         }
-        res+=source.substring(endIndex);
-        return res;
+        res.append(source.substring(endIndex));
+        return res.toString();
     }
 
     public static JSONObject httpGetJson(URL url) throws IOException {
@@ -304,7 +303,7 @@ public class Utils {
         // Get response
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
-        StringBuffer response = new StringBuffer();
+        StringBuilder response = new StringBuilder();
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
@@ -340,6 +339,7 @@ public class Utils {
     }
 
     public static <T> T[] mergeArrays(T[] a,T[] b) {
+        @SuppressWarnings("unchecked")
         T[] res = (T[]) Array.newInstance(a.getClass().getComponentType(), a.length+b.length);
         System.arraycopy(a, 0, res, 0, a.length);
         System.arraycopy(b, 0, res, a.length, b.length);

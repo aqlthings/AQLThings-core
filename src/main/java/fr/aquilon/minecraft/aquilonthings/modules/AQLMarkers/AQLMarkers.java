@@ -342,7 +342,7 @@ public class AQLMarkers implements IModule {
 		return true;
 	}
 
-	public void commandMarkerGroup(CommandSender sender, String args[]) {
+	public void commandMarkerGroup(CommandSender sender, String[] args) {
         final String usage = ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/marker group (new | delete | list | add | remove)";
         if (args.length < 2) {
             sender.sendMessage(usage);

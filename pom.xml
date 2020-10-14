@@ -10,18 +10,18 @@
     <packaging>jar</packaging>
 
     <repositories>
-	    <repository>
+        <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-		</repository>
+        </repository>
     </repositories>
 
     <dependencies>
-		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
             <version>1.15.2-R0.1-SNAPSHOT</version>
-		</dependency>
+        </dependency>
 
         <dependency>
             <groupId>mysql</groupId>
@@ -65,7 +65,7 @@
     <build>
         <resources>
             <resource>
-            	<targetPath>.</targetPath>
+                <targetPath>.</targetPath>
                 <filtering>true</filtering>
                 <directory>src/main/resources</directory>
                 <includes>
@@ -110,42 +110,7 @@
         <finalName>AquilonThings</finalName>
     </build>
 
-    <dependencyManagement>
-    	<dependencies>
-    		<dependency>
-    			<groupId>org.spigotmc</groupId>
-    			<artifactId>spigot-api</artifactId>
-    			<version>1.12.2-R0.1-SNAPSHOT</version>
-    		</dependency>
-            <dependency>
-                <groupId>ru.tehkode</groupId>
-                <artifactId>PermissionsEx</artifactId>
-                <version>1.23.4</version>
-            </dependency>
-    		<dependency>
-    			<groupId>mysql</groupId>
-    			<artifactId>mysql-connector-java</artifactId>
-    			<version>6.0.5</version>
-    		</dependency>
-            <dependency>
-                <groupId>org.nanohttpd</groupId>
-                <artifactId>nanohttpd-websocket</artifactId>
-                <version>2.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.nanohttpd</groupId>
-                <artifactId>nanohttpd</artifactId>
-                <version>2.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.auth0</groupId>
-                <artifactId>java-jwt</artifactId>
-                <version>3.3.0</version>
-            </dependency>
-    	</dependencies>
-    </dependencyManagement>
-    
-	<properties>
-    	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 </project>

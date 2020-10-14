@@ -80,7 +80,7 @@ public class AQLStaff implements IModule {
             Player target = p;
             if (args.length > 0) {
                 UUID uuid = Utils.getUUID(args[0]);
-                if (uuid != null) target = Bukkit.getPlayer(args[0]);
+                if (uuid != null) target = Bukkit.getPlayer(uuid);
                 else target = Bukkit.getPlayer(args[0]);
                 if (target == null) {
                     p.sendMessage(ChatColor.RED+"Joueur non trouvé");
@@ -122,14 +122,16 @@ public class AQLStaff implements IModule {
                 return true;
             }
         } else if (cmd.equalsIgnoreCase("armor")) {
-
             if (args.length == 3) {
-                if (Integer.valueOf(args[0]) < 0 || Integer.valueOf(args[0]) > 255 || Integer.valueOf(args[1]) < 0 || Integer.valueOf(args[1]) > 255 || Integer.valueOf(args[2]) < 0 || Integer.valueOf(args[2]) > 255) {
+                int r = Integer.parseInt(args[0]);
+                int g = Integer.parseInt(args[1]);
+                int b = Integer.parseInt(args[2]);
+                if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
                     sender.sendMessage(ChatColor.RED + "Erreur de couleur");
                     return true;
                 }
 
-                Color armorColor = org.bukkit.Color.fromRGB(Integer.valueOf(args[0]), Integer.valueOf(args[1]), Integer.valueOf(args[2]));
+                Color armorColor = org.bukkit.Color.fromRGB(r,g,b);
 
                 ItemStack helmet = new ItemStack(Material.LEATHER_HELMET, 1);
                 LeatherArmorMeta hm = (LeatherArmorMeta) helmet.getItemMeta();
@@ -154,7 +156,7 @@ public class AQLStaff implements IModule {
                 addItem(p, new ItemStack[]{helmet, chestplate, leggings, boots});
                 p.sendMessage(ChatColor.YELLOW + "Armure terminée");
                 return true;
-            }
+            } else return false;
         } else if (cmd.equalsIgnoreCase("name")) {
             ItemStack item = p.getInventory().getItemInMainHand();
             if (item.getType()==Material.AIR || item.getAmount()==0) {
