@@ -6,7 +6,7 @@ import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -172,7 +172,7 @@ public class AQLNames implements IModule {
 		Player target = (Player) targetEntity;
 		Player source = e.getPlayer();
 		PlayerInfo targetInfo = getPlayerInfo(target.getUniqueId());
-		String description = Utils.getPlayerColor(target)+targetInfo.getName()+ChatColor.GRAY+": * "+ChatColor.ITALIC+
+		String description = ChatColor.WHITE+targetInfo.getName()+ChatColor.GRAY+": * "+ChatColor.ITALIC+
 				targetInfo.getDescription("Une personne comme une autre") +ChatColor.RESET+ChatColor.GRAY+" *";
 		source.sendMessage(ChatColor.translateAlternateColorCodes('&', description));
 	}

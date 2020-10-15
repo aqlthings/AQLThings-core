@@ -3,11 +3,12 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLChat;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.utils.AquilonEvent;
+import fr.aquilon.minecraft.aquilonthings.utils.Rank;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.InvalidArgumentEx;
 import fr.aquilon.minecraft.utils.JSONPlayer;
 import fr.aquilon.minecraft.utils.JSONUtils;
 import fr.aquilon.minecraft.utils.MinecraftParser;
-import fr.aquilon.minecraft.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -38,7 +39,7 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
     public static final int EX_CODE_NAME_TOO_LONG = 3;
     public static final int EX_CODE_MESSAGE_EMPTY = 4;
 
-    public static final String FORMAT_LOG = "[{nick}] {sender} ({sender_rp}): {message}";
+    public static final String FORMAT_LOG = "[{nick}] {sender_name} ({sender_rp}): {message}";
 
     private static HandlerList handlers = new HandlerList();
 
@@ -51,11 +52,13 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
 
     private final AQLChat chat;
 
-    private ChatChannel channel;
-    private String message;
-    private Set<Player> recipients;
+    private final ChatChannel channel;
+    private final String message;
+    private final Set<Player> recipients;
 
-    private ChatColor prefixColor;
+    private ChatColor pColor;
+    private String pPrefix;
+    private String pSuffix;
     private String pName;
     private String pDisplayName;
 
@@ -70,12 +73,18 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
         this.message = msg;
         this.recipients = new HashSet<>();
         this.when = System.currentTimeMillis();
-        ChatColor color = DEFAULT_COLOR;
+        pColor = ANONYMOUS_COLOR;
+        pPrefix = null;
+        pSuffix = null;
         if (player != null) {
-            String pColor = Utils.getPlayerColor(player);
-            if (pColor.length()>1) color = ChatColor.getByChar(pColor.charAt(1));
+            pColor = DEFAULT_COLOR;
+            Rank rank = Utils.getPlayerRank(player.getUniqueId());
+            if (rank != null) {
+                pColor = rank.getColor();
+                pPrefix = rank.getPrefix();
+                pSuffix = rank.getSuffix();
+            }
         }
-        prefixColor  = (player!=null ? color : ANONYMOUS_COLOR);
         pName        = (player!=null ? player.getName() : ANONYMOUS_NAME);
         pDisplayName = (player!=null ? player.getDisplayName() : ANONYMOUS_NAME);
     }
@@ -83,7 +92,7 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
     public AquilonChatEvent(String name, ChatColor color, ChatChannel chan, String msg) throws InvalidArgumentEx {
         this(null, chan, msg);
         if (name.length()>15) throw new InvalidArgumentEx(EX_CODE_NAME_TOO_LONG, "Username is too long");
-        if (color!=null) this.prefixColor = color;
+        if (color!=null) this.pColor = color;
         if (name!=null) {
             this.pName = name;
             this.pDisplayName = name;
@@ -176,9 +185,22 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
 
     public String toMC(boolean colored) {
         String format = channel.getFormat();
-        format = format.replace("{color}", channel.getColor().toString()).replace("{nick}", channel.getNick()).replace("{prefix}", prefixColor.toString()).replace("{sender_rp}", pDisplayName).replace("{sender}", pName);
+        format = format.replace("{color}", channel.getColor().toString())
+                .replace("{nick}", channel.getNick())
+                .replace("{sender_color}", pColor != null ? pColor.toString() : "")
+                .replace("{sender_prefix}", pPrefix != null ? pPrefix : "")
+                .replace("{sender_suffix}", pSuffix != null ? pSuffix : "")
+                .replace("{sender_rp}", pDisplayName)
+                .replace("{sender_name}", pName)
+                .replace("{sender}", getDecoratedSenderName());
         if (!colored) return ChatColor.translateAlternateColorCodes('&', format).replace("{message}", message);
         return ChatColor.translateAlternateColorCodes('&', format.replace("{message}", message));
+    }
+
+    public String getDecoratedSenderName() {
+        return (pPrefix != null ? pPrefix : "") +
+                (pColor != null ? pColor.toString() : "") +
+                pName + (pSuffix != null ? pSuffix : "");
     }
 
     public String toHTML() {
@@ -194,7 +216,7 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
         return FORMAT_LOG
                 .replace("{nick}", channel.getNick())
                 .replace("{sender_rp}", pDisplayName)
-                .replace("{sender}", pName)
+                .replace("{sender_name}", pName)
                 .replace("{message}", message);
     }
 
@@ -205,7 +227,7 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
             JSONObject sender = new JSONObject();
             sender.put("pseudoUser", true);
             sender.put("name", pName);
-            sender.put("color", JSONUtils.jsonColor(prefixColor.getChar()));
+            sender.put("color", JSONUtils.jsonColor(pColor.getChar()));
             res.put("sender", sender);
         }
         res.put("message", JSONUtils.jsonColoredString(getMessage()));

@@ -1,6 +1,6 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
 
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.json.JSONObject;
 
 import java.util.Objects;

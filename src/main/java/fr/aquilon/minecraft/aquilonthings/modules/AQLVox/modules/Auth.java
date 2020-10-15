@@ -15,8 +15,8 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIRequest;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONUtils;
-import fr.aquilon.minecraft.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

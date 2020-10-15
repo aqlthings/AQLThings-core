@@ -6,10 +6,9 @@ import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
 import fr.aquilon.minecraft.aquilonthings.annotation.InPacket;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLGroups;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
 import fr.aquilon.minecraft.aquilonthings.utils.DelayedPlayerAction;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -196,8 +195,9 @@ public class AQLBlessures implements IModule {
     }
 
     public boolean updatePlayerList(CommandSender sender) {
-        AQLGroups aqlgroups =  AquilonThings.instance.getModuleData(AQLGroups.class);
-        if (aqlgroups != null) aqlgroups.commandRefreshgroups(sender, true);
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.setPlayerListName(Utils.decoratePlayerName(p));
+        }
         int count = 0;
         for (InjuryCounter counter: counters.values()) {
             counter.update();
@@ -228,7 +228,7 @@ public class AQLBlessures implements IModule {
             p = (Player) sender;
             InjuryEvent evt = new InjuryEvent(p, injury);
             evt.call(this);
-            prefix = Utils.getPlayerColor(p)+p.getName()+ChatColor.YELLOW+
+            prefix = Utils.decoratePlayerName(p)+ChatColor.YELLOW+
                     " ("+ChatColor.GRAY+p.getDisplayName()+ChatColor.YELLOW+"): ";
         }
         sender.sendMessage(injury.toString());
@@ -825,7 +825,7 @@ public class AQLBlessures implements IModule {
         }
         if (freeze) freezePlayer(p);
         else unfreezePlayer(p);
-        sender.sendMessage(ChatColor.YELLOW+"Le joueur "+Utils.getPlayerColor(p)+p.getName()+ChatColor.YELLOW+
+        sender.sendMessage(ChatColor.YELLOW+"Le joueur "+Utils.decoratePlayerName(p)+ChatColor.YELLOW+
                 "("+ChatColor.GRAY+p.getDisplayName()+ChatColor.YELLOW+") à bien été "+(freeze?"freeze":"défreeze")+".");
         return true;
     }

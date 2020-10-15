@@ -1,9 +1,9 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLFire;
 
 import fr.aquilon.minecraft.aquilonthings.utils.AquilonEvent;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONPlayer;
 import fr.aquilon.minecraft.utils.JSONUtils;
-import fr.aquilon.minecraft.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -72,7 +72,7 @@ public class AQLFireEvent extends Event implements AquilonEvent<AQLFire> {
         if (event.isCancelled()) return;
         boolean bubble = false;
         if (cause.equals(BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL) && !player.hasPermission(AQLFire.PERM_ALLOWED)) {
-            Utils.warnStaff(AQLFire.class, Utils.getPlayerColor(player) + player.getName() + ChatColor.RED + " est en train d'utiliser du feu ! " +
+            Utils.warnStaff(AQLFire.class, Utils.decoratePlayerName(player) + ChatColor.RED + " est en train d'utiliser du feu ! " +
                     ChatColor.WHITE+"/tpfire"+ChatColor.RED+" pour vous y téléporter.");
             f.registerAlert(position, true);
             bubble = true;

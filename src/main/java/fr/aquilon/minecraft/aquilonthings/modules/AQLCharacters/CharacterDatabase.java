@@ -19,7 +19,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.Skill;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.SkillCategory;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.StaffNote;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.TempCharacter;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.entity.Player;
 
 import javax.imageio.ImageIO;

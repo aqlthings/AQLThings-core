@@ -3,8 +3,8 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLRandoms;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.CharacterSkill;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLMisc;
 import fr.aquilon.minecraft.aquilonthings.utils.AquilonEvent;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONPlayer;
-import fr.aquilon.minecraft.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
@@ -68,8 +68,8 @@ public class AQLRandomEvent extends Event implements AquilonEvent<AQLRandoms> {
             if (!(e instanceof Player)) continue;
             // Si le random est secret et que la cible est pas staff on skip.
             if (secret && !e.hasPermission(AQLRandoms.PERM_RANDOM_SEE_SECRET)) continue;
-            e.sendMessage((secret?ChatColor.GRAY+"[Secret] ":"") + Utils.getPlayerColor(sender) +
-                    sender.getName() + ChatColor.YELLOW + " a tiré un " + text);
+            e.sendMessage((secret?ChatColor.GRAY+"[Secret] ":"") + Utils.decoratePlayerName(sender) +
+                    ChatColor.YELLOW + " a tiré un " + text);
         }
         AQLMisc.LOGGER.mInfo("[Random]"+(secret?"[Secret]":"")+" " +
                 sender.getName() + " tire " + ChatColor.stripColor(text));

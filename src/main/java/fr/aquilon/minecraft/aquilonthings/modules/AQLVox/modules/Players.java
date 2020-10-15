@@ -7,9 +7,9 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIRequest;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONPlayer;
 import fr.aquilon.minecraft.utils.JSONUtils;
-import fr.aquilon.minecraft.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
@@ -115,7 +115,7 @@ public class Players extends APIModule {
         HashMap<String, Integer> rankCount = new HashMap<>();
         for (Player p: Bukkit.getServer().getOnlinePlayers()) {
             JSONObject pInfo = JSONPlayer.toJSON(p, false);
-            String rank = pInfo.getString("rank");
+            String rank = pInfo.optString("rank", "default");
             rankCount.put(rank, (rankCount.containsKey(rank) ? rankCount.get(rank)+1 : 1));
             playerList.add(pInfo);
         }

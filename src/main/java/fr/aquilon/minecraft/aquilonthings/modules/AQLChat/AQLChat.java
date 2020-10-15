@@ -6,8 +6,8 @@ import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.InvalidArgumentEx;
-import fr.aquilon.minecraft.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -173,14 +173,14 @@ public class AQLChat implements IModule {
                 }
 
                 if (success) {
-                    sender.sendMessage(Utils.getPlayerColor(target) + target.getName() + ChatColor.YELLOW +
+                    sender.sendMessage(Utils.decoratePlayerName(target) + ChatColor.YELLOW +
                             " a bien été "+act+" du channel " + chan.getColor() + chan.getName());
                     LOGGER.mInfo(target.getName()+" "+(ban?"":"dé")+"banni du channel "+chan.getNick());
                     target.sendMessage(ChatColor.YELLOW+"Vous avez été "+act+" du channel "+
                             chan.getColor() + chan.getName());
                 } else {
                     sender.sendMessage(ChatColor.YELLOW + "Impossible de " + act + "r " +
-                            Utils.getPlayerColor(target) + target.getName() + ChatColor.YELLOW +
+                            Utils.decoratePlayerName(target) + ChatColor.YELLOW +
                             " du channel " + chan.getColor() + chan.getName());
                     LOGGER.mInfo("Impossible de "+act+"r "+target.getName()+" du channel "+chan.getNick());
                 }
@@ -214,7 +214,7 @@ public class AQLChat implements IModule {
 
                         for(Player player : Bukkit.getOnlinePlayers()){
                             if(!player.getName().equalsIgnoreCase(sender.getName())){
-                                player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.getPlayerColor(p) + p.getName() + ChatColor.YELLOW + " a quitté le channel " + chan.getColor() + chan.getName());
+                                player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " a quitté le channel " + chan.getColor() + chan.getName());
                             }
                         }
 
@@ -263,7 +263,7 @@ public class AQLChat implements IModule {
                     pInfos.showChannel(newChannel.getName());
                     for(Player player : Bukkit.getOnlinePlayers()){
                         if(player.getName().equalsIgnoreCase(sender.getName())) continue;
-                        player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.getPlayerColor(p) + p.getName() + ChatColor.YELLOW + " a rejoint le channel " + newChannel.getColor() + newChannel.getName());
+                        player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " a rejoint le channel " + newChannel.getColor() + newChannel.getName());
                     }
                     sender.sendMessage(ChatColor.YELLOW + "Vous avez rejoint le canal " + newChannel.getColor() + newChannel.getName());
                 }

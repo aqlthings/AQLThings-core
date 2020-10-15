@@ -1,9 +1,12 @@
-package fr.aquilon.minecraft.utils;
+package fr.aquilon.minecraft.aquilonthings.utils;
 
 import com.google.common.base.Charsets;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -13,9 +16,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.json.JSONObject;
-import ru.tehkode.permissions.PermissionGroup;
-import ru.tehkode.permissions.PermissionUser;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -58,25 +58,35 @@ public class Utils {
     }
 
     /**
-     * @see Utils#getPlayerColor(UUID)
+     * @param playerId The player UUID
+     * @return The player rank
      */
-    public static String getPlayerColor(Player player) {
-        return getPlayerColor(player.getUniqueId());
+    public static Rank getPlayerRank(UUID playerId) {
+        LuckPerms perms = LuckPermsProvider.get();
+        User permUser;
+        try {
+            permUser = perms.getUserManager().loadUser(playerId).get();
+        } catch (InterruptedException | ExecutionException e) {
+            AquilonThings.LOGGER.log(Level.INFO, AquilonThings.LOG_PREFIX+
+                    " Unable to load user permissions: "+playerId, e);
+            return null;
+        }
+        String rankName = permUser.getPrimaryGroup();
+        FileConfiguration config = AquilonThings.instance.getConfig();
+        return Rank.getRank(rankName, config.getConfigurationSection("players.ranks."+rankName));
     }
 
     /**
-     * Méthode permettant de récupérer le préfixe PEX d'un joueur.
+     * Decorate the player name with prefix, color and suffix based on its rank
      */
-    public static String getPlayerColor(UUID playerUUID) {
-        //Récupération du préfixe dans les permissions
-        PermissionUser user = PermissionsEx.getPermissionManager().getUser(playerUUID);
-        if (user==null) return "";
-        String prefix = user.getPrefix();
-        if (prefix.isEmpty()) {
-            List<PermissionGroup> groups = user.getParents();
-            if (groups.size() > 0) prefix = groups.get(0).getPrefix();
-        }
-        return ChatColor.translateAlternateColorCodes('&', prefix);
+    public static String decoratePlayerName(Player p) {
+        return decoratePlayerName(p, null, null, null);
+    }
+
+    public static String decoratePlayerName(Player p, String customPrefix, ChatColor customColor, String customSuffix) {
+        Rank rank = getPlayerRank(p.getUniqueId());
+        if (rank == null) return p.getName();
+        return rank.decorateUsername(p.getName(), customPrefix, customColor, customSuffix);
     }
 
     public static Thread threadFromID(long id) {
@@ -146,7 +156,7 @@ public class Utils {
 
     public static FileConfiguration loadConfig(String configFile) {
         FileConfiguration newConfig = YamlConfiguration.loadConfiguration(new File(AquilonThings.instance.getDataFolder(), configFile));
-        if (newConfig.getKeys(false).size()<1) return null;
+        //if (newConfig.getKeys(false).size()<1) return null;
 
         final InputStream defConfigStream = getResource(configFile);
         if (defConfigStream == null) return null;

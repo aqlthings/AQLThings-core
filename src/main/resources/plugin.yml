@@ -8,6 +8,8 @@ authors:
   - Billi
   - Termm
 prefix: AqlThings
+depend:
+  - LuckPerms
 commands:
   aqlthings:
     description: Gestion d'AquilonThings

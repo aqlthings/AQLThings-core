@@ -7,7 +7,7 @@ import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
 import fr.aquilon.minecraft.aquilonthings.annotation.InPacket;
 import fr.aquilon.minecraft.aquilonthings.annotation.OutPacket;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -24,6 +24,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -46,7 +47,8 @@ import java.util.logging.Level;
 				@Cmd(value = AQLMisc.CMD_PINFO, desc = "Un truc ..."),
 				@Cmd(value = AQLMisc.CMD_PWEATHER, desc = "Definition de la météo pour un joueur"),
 				@Cmd(value = AQLMisc.CMD_BROUILLARD, desc = "Définition du brouillard pour un joueur"),
-				@Cmd(value = AQLMisc.CMD_SUMMON_AREA, desc = "Invocation de mobs dans une zone")
+				@Cmd(value = AQLMisc.CMD_SUMMON_AREA, desc = "Invocation de mobs dans une zone"),
+				@Cmd(value = AQLMisc.CMD_UPDATE_LIST, desc = "Mise à jour de la liste des joueurs")
 		},
 		inPackets = { @InPacket(AquilonThings.CHANNEL_READY), @InPacket(AQLMisc.CHANNEL_PLAYERINFO) },
 		outPackets = { @OutPacket(AQLMisc.CHANNEL_PLAYERINFO), @OutPacket(AQLMisc.CHANNEL_BROUILLARD) }
@@ -58,6 +60,7 @@ public class AQLMisc implements IModule {
 	public static final String CMD_PWEATHER = "pweather";
 	public static final String CMD_BROUILLARD = "brouillard";
 	public static final String CMD_SUMMON_AREA = "summonarea";
+	public static final String CMD_UPDATE_LIST = "updatelist";
 
 	public static final String CONFIG_FILE = "AQLMisc.yml";
 
@@ -100,7 +103,7 @@ public class AQLMisc implements IModule {
 		} else if(channel.equals(CHANNEL_PLAYERINFO) && cmdString.length > 0) {
 		    String data = new String(cmdString).substring(1).split(":")[1];
 			if (pinfoRequester!=null) pinfoRequester.sendMessage(ChatColor.YELLOW+"Info joueur "+
-					Utils.getPlayerColor(p)+p.getName()+ChatColor.YELLOW+" : "+
+					Utils.decoratePlayerName(p)+ChatColor.YELLOW+" : "+
 					ChatColor.WHITE + data.replace("*;",ChatColor.RED+"*"+ChatColor.WHITE+";"));
 		}
 	}
@@ -172,7 +175,7 @@ public class AQLMisc implements IModule {
 
 			player.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_BROUILLARD, args[1].getBytes());
 			sender.sendMessage(ChatColor.YELLOW + "Le brouillard est défini avec succès sur le joueur "+
-					Utils.getPlayerColor(player) + player.getName() + ChatColor.YELLOW +  " (" + density + ")");
+					Utils.decoratePlayerName(player) + ChatColor.YELLOW +  " (" + density + ")");
 			return true;
 		} else if(scmd.equalsIgnoreCase(CMD_PWEATHER)) {
 			if (!sender.hasPermission(PERM_PWEATHER)) {
@@ -240,8 +243,12 @@ public class AQLMisc implements IModule {
 			}
 
 			sender.sendMessage(ChatColor.YELLOW + "La météo est définie avec succès sur le joueur "+
-					Utils.getPlayerColor(player) + player.getName() + ChatColor.YELLOW + " (" + (weather ? "pluie/neige" : "normal") + ")");
+					Utils.decoratePlayerName(player) + ChatColor.YELLOW + " (" + (weather ? "pluie/neige" : "normal") + ")");
 			return true;
+		} else if (scmd.equalsIgnoreCase(CMD_UPDATE_LIST)) {
+			for (Player p : Bukkit.getOnlinePlayers()) {
+				p.setPlayerListName(Utils.decoratePlayerName(p));
+			}
 		}
 
 		return false;
@@ -329,6 +336,14 @@ public class AQLMisc implements IModule {
 	}
 
 	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent event) {
+		Player player = event.getPlayer();
+		if (config.getBoolean("players.setPlayerListName", true)) {
+			player.setPlayerListName(Utils.decoratePlayerName(player));
+		}
+	}
+
+	@EventHandler
 	public static void playerKickMessage(PlayerKickEvent event) {
 		// On interdit le kick des "staff premium"
 		if (event.getPlayer().hasPermission(PERM_PREMIUM)) {
@@ -394,9 +409,9 @@ public class AQLMisc implements IModule {
 		}
 
 		// Color the dead player name
-		String playerColor = Utils.getPlayerColor(p);
+		String playerName = Utils.decoratePlayerName(p);
 		event.setDeathMessage(ChatColor.YELLOW + event.getDeathMessage()
-				.replace(p.getName(), playerColor + p.getName() + ChatColor.YELLOW));
+				.replace(p.getName(), playerName + ChatColor.YELLOW));
 
 		int deathMessageRadius = config.getInt("death.messageRadius", -1);
 		if (deathMessageRadius >= 0) {
