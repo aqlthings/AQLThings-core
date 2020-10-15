@@ -45,7 +45,7 @@ public class AQLNames implements IModule {
 	private static final String SQL_FIND_PLAYER_INFO = "SELECT * FROM aqlnames_names WHERE player = ? ";
 	private static final String SQL_UPDATE_PLAYER_INFO = "INSERT INTO aqlnames_names VALUES " +
 			"(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE player_name = ?, " +
-			"display_name = ?, desc = ?, updated = ?";
+			"display_name = ?, description = ?, updated = ?";
 
 	private DatabaseConnector db;
 	private HashMap<String, PlayerInfo> playerInfos;
@@ -94,7 +94,7 @@ public class AQLNames implements IModule {
 				sender.sendMessage(ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/nom setx <player> <nom>;<desc>");
 				return true;
 			}
-			// TODO: search a player by name
+			// TODO: search a player by name and set his name and description
 			sender.sendMessage("Not implemented yet !");
 			return true;
 		} else if (args[0].equals("list")) {
@@ -102,8 +102,11 @@ public class AQLNames implements IModule {
 				sender.sendMessage(ChatColor.YELLOW+"Je pense pas que tu ai le droit de toucher à ça !");
 				return true;
 			}
-			// TODO: send a list of player and their RP name
-			sender.sendMessage("Not implemented yet !");
+			sender.sendMessage(ChatColor.YELLOW+"Liste des noms:");
+			for (Player p : Bukkit.getOnlinePlayers()) {
+				PlayerInfo info = getPlayerInfo(p.getUniqueId());
+				sender.sendMessage("  "+Utils.decoratePlayerName(p)+ChatColor.GRAY+" - "+ChatColor.WHITE+info.getName());
+			}
 			return true;
 		} else if (args[0].equals("search")) {
 			if (!sender.hasPermission(PERM_SEARCH_NAMES)) {
