@@ -83,10 +83,24 @@ public class Utils {
         return decoratePlayerName(p, null, null, null);
     }
 
+    public static String decoratePlayerName(UUID id, String name) {
+        return decoratePlayerName(id, name, null, null, null);
+    }
+
     public static String decoratePlayerName(Player p, String customPrefix, ChatColor customColor, String customSuffix) {
-        Rank rank = getPlayerRank(p.getUniqueId());
-        if (rank == null) return p.getName();
-        return rank.decorateUsername(p.getName(), customPrefix, customColor, customSuffix);
+        return decoratePlayerName(p.getUniqueId(), p.getName(), customPrefix, customColor, customSuffix);
+    }
+
+    public static String decoratePlayerName(UUID playerId, String playerName, String customPrefix,
+                                            ChatColor customColor, String customSuffix) {
+        Rank rank = getPlayerRank(playerId);
+        if (rank == null) return playerName;
+        return rank.decorateUsername(playerName, customPrefix, customColor, customSuffix);
+    }
+
+    public boolean checkArg(String[] args, int arg, String expected) {
+        if (args.length <= arg) return false;
+        return args[arg].equals(expected);
     }
 
     public static Thread threadFromID(long id) {

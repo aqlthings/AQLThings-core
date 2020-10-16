@@ -126,7 +126,7 @@ public class PlayerState implements JSONExportable {
         if (!ctx.isStarted()) return Utils.decoratePlayerName(player);
         return getState().getColor().toString()+
                 String.format("%3d", getScore()) + ChatColor.WHITE + " | " +
-                Utils.decoratePlayerName(getPlayer(), null, ctx.isActive() ? ChatColor.ITALIC : null, null);
+                Utils.decoratePlayerName(playerUUUID, player.getName(), null, ctx.isActive() ? ChatColor.ITALIC : null, null);
     }
 
     /**
