@@ -14,8 +14,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 import org.json.JSONObject;
 
 import java.util.Collection;
@@ -27,11 +27,10 @@ import java.util.logging.Level;
 import static fr.aquilon.minecraft.utils.JSONUtils.jsonDate;
 
 /**
- * Created by Billi on 20/04/2017.
- *
+ * An event dispatched by AQLChat when a message is sent to a channel
  * @author Billi
  */
-public class AquilonChatEvent extends PlayerEvent implements Cancellable, AquilonEvent<AQLChat> {
+public class AquilonChatEvent extends Event implements Cancellable, AquilonEvent<AQLChat> {
     public static final int MAX_LENGTH_MESSAGE = 500;
 
     public static final int EX_CODE_BAD_ANONYMOUS_CHANNEL = 1;
@@ -41,9 +40,9 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
 
     public static final String FORMAT_LOG = "[{nick}] {sender_name} ({sender_rp}): {message}";
 
-    private static HandlerList handlers = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
-    private long when;
+    private final long when;
     private boolean cancelled;
 
     private static final String ANONYMOUS_NAME = "Console";
@@ -52,6 +51,7 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
 
     private final AQLChat chat;
 
+    private final Player sender;
     private final ChatChannel channel;
     private final String message;
     private final Set<Player> recipients;
@@ -62,11 +62,11 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
     private String pName;
     private String pDisplayName;
 
-    public AquilonChatEvent(Player who, ChatChannel chan, String msg) throws InvalidArgumentEx {
-        super(who);
+    public AquilonChatEvent(Player sender, ChatChannel chan, String msg) throws InvalidArgumentEx {
         chat = AquilonThings.instance.getModuleData(AQLChat.class);
         if (chat == null) throw new IllegalStateException("Cannot create a chat event when AQLChat isn't loaded");
-        if (who==null && chan.getDistance()!=0) throw new InvalidArgumentEx(EX_CODE_BAD_ANONYMOUS_CHANNEL, "Anonymous is allowed in global channels only.");
+        this.sender = sender;
+        if (sender==null && chan.getDistance()!=0) throw new InvalidArgumentEx(EX_CODE_BAD_ANONYMOUS_CHANNEL, "Anonymous is allowed in global channels only.");
         this.channel = chan;
         if (msg.length()<1) throw new InvalidArgumentEx(EX_CODE_MESSAGE_EMPTY, "Message is empty");
         if (msg.length()>MAX_LENGTH_MESSAGE) throw new InvalidArgumentEx(EX_CODE_MESSAGE_TOO_LONG, "Message is too long");
@@ -76,17 +76,17 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
         pColor = ANONYMOUS_COLOR;
         pPrefix = null;
         pSuffix = null;
-        if (player != null) {
+        if (sender != null) {
             pColor = DEFAULT_COLOR;
-            Rank rank = Utils.getPlayerRank(player.getUniqueId());
+            Rank rank = Utils.getPlayerRank(sender.getUniqueId());
             if (rank != null) {
                 pColor = rank.getColor();
                 pPrefix = rank.getPrefix();
                 pSuffix = rank.getSuffix();
             }
         }
-        pName        = (player!=null ? player.getName() : ANONYMOUS_NAME);
-        pDisplayName = (player!=null ? player.getDisplayName() : ANONYMOUS_NAME);
+        pName        = (sender!=null ? sender.getName() : ANONYMOUS_NAME);
+        pDisplayName = (sender!=null ? sender.getDisplayName() : ANONYMOUS_NAME);
     }
 
     public AquilonChatEvent(String name, ChatColor color, ChatChannel chan, String msg) throws InvalidArgumentEx {
@@ -100,7 +100,7 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
     }
 
     public boolean isConsole() {
-        return player==null;
+        return sender==null;
     }
 
     public String getSenderName() {
@@ -113,6 +113,34 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
 
     public String getMessage() {
         return message;
+    }
+
+    public final Player getSender() {
+        return sender;
+    }
+
+    public ChatColor getSenderColor() {
+        return pColor;
+    }
+
+    public String getSenderPrefix() {
+        return pPrefix;
+    }
+
+    public String getSenderSuffix() {
+        return pSuffix;
+    }
+
+    public String getSenderDisplayName() {
+        return pDisplayName;
+    }
+
+    /**
+     * Whether the message content should be decoded for color formatting
+     * @return <code>true</code> if the sender is console or has the permission, <code>false</code> otherwise
+     */
+    public boolean isMessageColored() {
+        return isConsole() || sender.hasPermission(AQLChat.PERM_CHAT_FORMATED);
     }
 
     @Override
@@ -168,8 +196,8 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
             Player p = iter.next();
             Location loc = p.getLocation();
             if (channel.getDistance() > 0) {
-                if (player.getLocation().getWorld()!=loc.getWorld()) continue;
-                if (player.getLocation().distance(loc) > channel.getDistance()) continue;
+                if (sender.getLocation().getWorld()!=loc.getWorld()) continue;
+                if (sender.getLocation().distance(loc) > channel.getDistance()) continue;
             }
             if (!p.hasPermission(channel.getReadPermission())) continue;
             if (!chat.getPlayerInfos(p).isInChannel(channel)) continue;
@@ -179,25 +207,14 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
     }
 
     public String toMC() {
-        // Si le joueur est staff (ou console) on transforme les codes couleurs du message.
-        return this.toMC(player==null || player.hasPermission(AQLChat.PERM_CHAT_FORMATED));
+        return this.toMC(isMessageColored());
     }
 
     public String toMC(boolean colored) {
-        String format = channel.getFormat();
-        format = format.replace("{color}", channel.getColor().toString())
-                .replace("{nick}", channel.getNick())
-                .replace("{sender_color}", pColor != null ? pColor.toString() : "")
-                .replace("{sender_prefix}", pPrefix != null ? pPrefix : "")
-                .replace("{sender_suffix}", pSuffix != null ? pSuffix : "")
-                .replace("{sender_rp}", pDisplayName)
-                .replace("{sender_name}", pName)
-                .replace("{sender}", getDecoratedSenderName());
-        if (!colored) return ChatColor.translateAlternateColorCodes('&', format).replace("{message}", message);
-        return ChatColor.translateAlternateColorCodes('&', format.replace("{message}", message));
+        return channel.computeMessage(message, pName, pDisplayName, pPrefix, pSuffix, pColor, colored);
     }
 
-    public String getDecoratedSenderName() {
+    public static String getDecoratedSenderName(String pName, String pPrefix, String pSuffix, ChatColor pColor) {
         return (pPrefix != null ? pPrefix : "") +
                 (pColor != null ? pColor.toString() : "") +
                 pName + (pSuffix != null ? pSuffix : "");
@@ -222,7 +239,7 @@ public class AquilonChatEvent extends PlayerEvent implements Cancellable, Aquilo
 
     public JSONObject toJSON() {
         JSONObject res = new JSONObject();
-        if (player!=null) res.put("sender", JSONPlayer.toJSON(player, false));
+        if (sender!=null) res.put("sender", JSONPlayer.toJSON(sender, false));
         else {
             JSONObject sender = new JSONObject();
             sender.put("pseudoUser", true);

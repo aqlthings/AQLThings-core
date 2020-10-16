@@ -12,14 +12,14 @@ import org.json.JSONObject;
  */
 public class ChatChannel implements JSONExportable {
     public static final ChatColor DEFAULT_COLOR = ChatColor.WHITE;
-    public static final String DEFAULT_FORMAT = "{color}[{nick}] {prefix}{sender}{color}: {message}";
+    public static final String DEFAULT_FORMAT = "{color}[{nick}] {sender}{color}: {message}";
     public static final int DEFAULT_DISTANCE = 0;
 
-    private String name;
-    private String nick;
-    private int distance;
-    private ChatColor color;
-    private String format;
+    private final String name;
+    private final String nick;
+    private final int distance;
+    private final ChatColor color;
+    private final String format;
 
     public ChatChannel(String name, String nick, int distance) {
         this(name, nick, distance, DEFAULT_COLOR, DEFAULT_FORMAT);
@@ -48,20 +48,24 @@ public class ChatChannel implements JSONExportable {
         return name;
     }
 
+    public String getGlobalPermission() {
+        return AQLChat.PERM_CHAN_BASE.concat(getName().toLowerCase());
+    }
+
     public String getJoinPermission() {
-        return AQLChat.PERM_JOIN.concat(getName().toLowerCase());
+        return getGlobalPermission().concat(".join");
     }
 
     public String getReadPermission() {
-        return AQLChat.PERM_READ.concat(getName().toLowerCase());
+        return getGlobalPermission().concat(".read");
     }
 
     public String getSpeakPermission() {
-        return AQLChat.PERM_SPEAK.concat(getName().toLowerCase());
+        return getGlobalPermission().concat(".speak");
     }
 
     public String getLeavePermission() {
-        return AQLChat.PERM_LEAVE.concat(getName().toLowerCase());
+        return getGlobalPermission().concat(".leave");
     }
 
     public String getNick() {
@@ -78,5 +82,21 @@ public class ChatChannel implements JSONExportable {
 
     public String getFormat() {
         return format;
+    }
+
+    public String computeMessage(String message, String pName, String pDispName,
+                                            String pPrefix, String pSuffix, ChatColor pColor, boolean colored) {
+        String res = getFormat();
+        res = res.replace("{color}", getColor().toString())
+                .replace("{nick}", getNick())
+                .replace("{sender_color}", pColor != null ? pColor.toString() : "")
+                .replace("{sender_prefix}", pPrefix != null ? pPrefix : "")
+                .replace("{sender_suffix}", pSuffix != null ? pSuffix : "")
+                .replace("{sender_rp}", pDispName)
+                .replace("{sender_name}", pName)
+                .replace("{sender}", AquilonChatEvent.getDecoratedSenderName(pName, pPrefix, pSuffix, pColor));
+        res = ChatColor.translateAlternateColorCodes('&', res);
+        return res.replace("{message}", colored ?
+                ChatColor.translateAlternateColorCodes('&', message) : message);
     }
 }

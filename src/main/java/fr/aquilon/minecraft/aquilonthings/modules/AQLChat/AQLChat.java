@@ -46,10 +46,7 @@ public class AQLChat implements IModule {
     public static final String COMMAND_CH = "ch";
     public static final String COMMAND_QMSG = "qmsg";
 
-    public static final String PERM_READ = AquilonThings.PERM_ROOT + ".chat.read.";
-    public static final String PERM_SPEAK = AquilonThings.PERM_ROOT + ".chat.speak.";
-    public static final String PERM_JOIN = AquilonThings.PERM_ROOT + ".chat.join.";
-    public static final String PERM_LEAVE = AquilonThings.PERM_ROOT + ".chat.leave.";
+    public static final String PERM_CHAN_BASE = AquilonThings.PERM_ROOT + ".chat.channel.";
     public static final String PERM_CHAT_FORMATED = AquilonThings.PERM_ROOT + ".chat.formated";
 
     public static final String DEFAULT_CHANNEL = "Global";
