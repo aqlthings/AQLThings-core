@@ -249,6 +249,8 @@ public class AQLMisc implements IModule {
 			for (Player p : Bukkit.getOnlinePlayers()) {
 				p.setPlayerListName(Utils.decoratePlayerName(p));
 			}
+			sender.sendMessage(ChatColor.YELLOW+"Liste mise à jour");
+			return true;
 		}
 
 		return false;

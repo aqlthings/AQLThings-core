@@ -16,6 +16,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -129,7 +130,9 @@ public class AQLChat implements IModule {
                 sender.sendMessage(ChatColor.YELLOW + "Liste des channels: ");
 
                 for (ChatChannel chan : channelList.values()) {
-                    if (sender.hasPermission(chan.getReadPermission())) sender.sendMessage(ChatColor.YELLOW + "- " + ChatColor.WHITE + chan.getColor() + chan.getName() + " (" + chan.getNick() + ")");
+                    if (!sender.hasPermission(chan.getReadPermission())) continue;
+                    sender.sendMessage(ChatColor.YELLOW + "- " + ChatColor.WHITE + chan.getColor() +
+                            chan.getName() + " (" + chan.getNick() + ")");
                 }
 
                 return true;
@@ -141,21 +144,18 @@ public class AQLChat implements IModule {
                     return true;
                 }
 
-                Player target = null;
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getName().equalsIgnoreCase(args[1])) {
-                        target = p;
-                        break;
-                    }
-                }
+                Player target = Bukkit.getOnlinePlayers().stream()
+                        .filter(p -> p.getName().equals(args[1])).findFirst().orElse(null);
                 if (target==null) {
                     sender.sendMessage(ChatColor.RED + "De qui on parle ? Je le connais pas moi.");
                     return true;
                 }
 
-                String chanName = args[2];
-                if (channelNicks.containsKey(args[2].toUpperCase())) chanName = channelNicks.get(args[2].toUpperCase());
-                ChatChannel chan = channelList.get(chanName.toLowerCase());
+                ChatChannel chan = findChannel(args[2]);
+                if (chan==null) {
+                    sender.sendMessage(ChatColor.RED + "Channel inexistant !");
+                    return true;
+                }
 
                 ChatPlayer pInfos = playerInfos.get(target.getUniqueId().toString());
 
@@ -190,18 +190,46 @@ public class AQLChat implements IModule {
             }
             Player p = (Player) sender;
             ChatPlayer pInfos = playerInfos.get(p.getUniqueId().toString());
-            if(args[0].equalsIgnoreCase("leave")) {
+            if (args[0].equalsIgnoreCase("join")) {
                 if (args.length < 2) return false;
 
-                String chanName = args[1];
-                if (channelNicks.containsKey(args[1].toUpperCase())) chanName = channelNicks.get(args[1].toUpperCase());
-                ChatChannel chan = channelList.get(chanName.toLowerCase());
+                ChatChannel chan = findChannel(args[1]);
                 if (chan==null) {
                     sender.sendMessage(ChatColor.RED + "Channel inexistant !");
                     return true;
                 }
 
-                if(sender.hasPermission(chan.getLeavePermission())) {
+                if (sender.hasPermission(chan.getJoinPermission())) {
+                    if (pInfos.isChannelHidden(chan.getName())) {
+                        pInfos.showChannel(chan.getName());
+
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            if (!player.hasPermission(chan.getReadPermission())) continue;
+                            if (player.getName().equalsIgnoreCase(sender.getName())) continue;
+                            player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) +
+                                    ChatColor.YELLOW + " a rejoin le channel " + chan.getColor() + chan.getName());
+                        }
+
+                        sender.sendMessage(ChatColor.YELLOW + "Vous venez de rejoindre le channel " + chan.getColor() + chan.getName());
+                        return true;
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Vous avez déjà rejoin ce channel ...");
+                        return true;
+                    }
+                } else {
+                    sender.sendMessage(ChatColor.RED + "Vous ne pouvez pas rejoindre ce channel !");
+                    return true;
+                }
+            } else if (args[0].equalsIgnoreCase("leave")) {
+                if (args.length < 2) return false;
+
+                ChatChannel chan = findChannel(args[1]);
+                if (chan==null) {
+                    sender.sendMessage(ChatColor.RED + "Channel inexistant !");
+                    return true;
+                }
+
+                if (sender.hasPermission(chan.getLeavePermission())) {
                     if (!pInfos.isChannelHidden(chan.getName())) {
                         pInfos.hideChannel(chan.getName());
                         if (pInfos.getChannel()!=null && pInfos.getChannel().equalsIgnoreCase(chan.getName())) {
@@ -209,10 +237,11 @@ public class AQLChat implements IModule {
                             updatePlayerChannel(p, null);
                         }
 
-                        for(Player player : Bukkit.getOnlinePlayers()){
-                            if(!player.getName().equalsIgnoreCase(sender.getName())){
-                                player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " a quitté le channel " + chan.getColor() + chan.getName());
-                            }
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            if (!player.hasPermission(chan.getReadPermission())) continue;
+                            if (player.getName().equalsIgnoreCase(sender.getName())) continue;
+                            player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) +
+                                    ChatColor.YELLOW + " a quitté le channel " + chan.getColor() + chan.getName());
                         }
 
                         sender.sendMessage(ChatColor.YELLOW + "Vous venez de quitter le channel " + chan.getColor() + chan.getName());
@@ -228,9 +257,7 @@ public class AQLChat implements IModule {
             } else { // Join and focus channel
                 ChatChannel newChannel;
                 String currentChan = pInfos.getChannel();
-                String chanName = args[0];
-                if (channelNicks.containsKey(args[0].toUpperCase())) chanName = channelNicks.get(args[0].toUpperCase());
-                ChatChannel chan = channelList.get(chanName.toLowerCase());
+                ChatChannel chan = findChannel(args[0]);
                 if (chan==null) {
                     sender.sendMessage(ChatColor.RED + "Channel inexistant !");
                     return true;
@@ -259,8 +286,10 @@ public class AQLChat implements IModule {
                 if(pInfos.isChannelHidden(newChannel.getName())) {
                     pInfos.showChannel(newChannel.getName());
                     for(Player player : Bukkit.getOnlinePlayers()){
-                        if(player.getName().equalsIgnoreCase(sender.getName())) continue;
-                        player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " a rejoint le channel " + newChannel.getColor() + newChannel.getName());
+                        if (!player.hasPermission(chan.getReadPermission())) continue;
+                        if (player.getName().equalsIgnoreCase(sender.getName())) continue;
+                        player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) +
+                                ChatColor.YELLOW + " a rejoint le channel " + newChannel.getColor() + newChannel.getName());
                     }
                     sender.sendMessage(ChatColor.YELLOW + "Vous avez rejoint le canal " + newChannel.getColor() + newChannel.getName());
                 }
@@ -350,10 +379,15 @@ public class AQLChat implements IModule {
         } else {
             ChatChannel chan = channelList.get(pInfos.getChannel().toLowerCase());
             if (chan == null) {
-                LOGGER.mSevere("Channel inexistant ("+pInfos.getChannel()+")");
+                p.sendMessage(ChatColor.RED + "Ce channel n'existe plus...");
+                LOGGER.mWarning("Channel inexistant ("+pInfos.getChannel()+")");
                 return;
             }
-            AquilonChatEvent chat = null;
+            if (!p.hasPermission(chan.getSpeakPermission()) || pInfos.isBannedFromChannel(chan.getName())) {
+                p.sendMessage(ChatColor.RED + "Vous n'avez pas le droit de parler dans ce channel !");
+                return;
+            }
+            AquilonChatEvent chat;
             try {
                 chat = new AquilonChatEvent(p, chan, msg);
             } catch (InvalidArgumentEx e) {
@@ -361,6 +395,7 @@ public class AQLChat implements IModule {
                     p.sendMessage(ChatColor.RED+"Message trop long. (max "+AquilonChatEvent.MAX_LENGTH_MESSAGE+")");
                     return;
                 }
+                LOGGER.mWarning("Chat impossible, argument invalide ("+pInfos.getChannel()+")");
                 return;
             }
 
@@ -368,6 +403,11 @@ public class AQLChat implements IModule {
             chat.addAllRecipient(chatEvent.getRecipients());
             chat.call(this);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    private void onAquilonChat(AquilonChatEvent evt) {
+        evt.handleEvent();
     }
 
     public ChatPlayer getPlayerInfos(Player p) {
@@ -469,6 +509,12 @@ public class AQLChat implements IModule {
         }
         db.endTransaction(con);
         return res;
+    }
+
+    public ChatChannel findChannel(String query) {
+        String chanName = query;
+        if (channelNicks.containsKey(query.toUpperCase())) chanName = channelNicks.get(query.toUpperCase());
+        return channelList.get(chanName.toLowerCase());
     }
 
     public AquilonChatEvent[] getChatHistory() {

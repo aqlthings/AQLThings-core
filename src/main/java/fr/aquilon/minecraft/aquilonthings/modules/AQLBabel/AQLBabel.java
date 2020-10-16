@@ -36,9 +36,8 @@ public class AQLBabel implements IModule {
 
     public static final String COMMAND_BABEL = "babel";
 
-    public static final String PERM_LIST_SELF = AquilonThings.PERM_ROOT + ".babel.list.self";
-    public static final String PERM_LIST_OTHERS = AquilonThings.PERM_ROOT + ".babel.list.others";
-    public static final String PERM_INFO = AquilonThings.PERM_ROOT + ".babel.info";
+    public static final String PERM_INFO_SELF = AquilonThings.PERM_ROOT + ".babel.info.self";
+    public static final String PERM_INFO_OTHERS = AquilonThings.PERM_ROOT + ".babel.info.others";
     public static final String PERM_EDIT_LANG = AquilonThings.PERM_ROOT + ".babel.edit.lang";
     public static final String PERM_EDIT_LEVEL = AquilonThings.PERM_ROOT + ".babel.edit.level";
 
@@ -71,12 +70,12 @@ public class AQLBabel implements IModule {
     public boolean onCommand(CommandSender sender, Command cmd, String alias, String[] args) {
         if (!alias.equalsIgnoreCase(COMMAND_BABEL)) return false;
         final String USAGE = ChatColor.YELLOW+"Usage: "+ ChatColor.WHITE+
-                "/babel (info <lang>)|(select <lang>)|(list [<player>])|(set <player> <lang> <level> [<comment>])(lang ...)";
+                "/babel (info [<player>])|(select <lang>)|(set <player> <lang> <level> [<comment>])(lang ...)";
         if (args.length < 1) {
             sender.sendMessage(USAGE);
             return true;
         }
-        if (args[0].equals("list")) {
+        if (args[0].equals("info")) {
             Player target = null;
             if (sender instanceof Player) {
                 target = (Player) sender;
@@ -92,7 +91,7 @@ public class AQLBabel implements IModule {
                 return true;
             }
             boolean self = sender == target;
-            if (!sender.hasPermission(self ? PERM_LIST_SELF : PERM_LIST_OTHERS)) {
+            if (!sender.hasPermission(self ? PERM_INFO_SELF : PERM_INFO_OTHERS)) {
                 sender.sendMessage(ChatColor.YELLOW+"You are not allowed to do that !");
                 return true;
             }
@@ -106,6 +105,9 @@ public class AQLBabel implements IModule {
                         " (level "+ChatColor.WHITE+pLang.getLevel()+ChatColor.YELLOW+")"+
                         (pLang.getComment() != null ?": "+ChatColor.GRAY+pLang.getComment() : ""));
             }
+            Language selectedLanguage = targetInfo.getSelectedLanguage();
+            sender.sendMessage(ChatColor.YELLOW+"Selected language: "+ChatColor.WHITE+
+                    (selectedLanguage == null ? "Common tongue" : selectedLanguage.getName()));
         } else if (args[0].equals("select")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Player command only !");
@@ -118,59 +120,20 @@ public class AQLBabel implements IModule {
             }
             Language lang = languages.values().stream()
                     .filter(l -> l.getName().equals(args[1])).findFirst().orElse(null);
-            if (lang == null) {
+            if (!args[1].equals("none") && lang == null) {
                 sender.sendMessage(ChatColor.YELLOW+"Invalid language name");
                 sender.sendMessage(USAGE_SELECT);
                 return true;
             }
             Player target = (Player) sender;
             BabelPlayer pInfo = getPlayerInfo(target);
-            if (!pInfo.speaks(lang)) {
+            if (lang != null && !pInfo.speaks(lang)) {
                 sender.sendMessage(ChatColor.YELLOW+"You cannot select a language you do not speak");
                 return true;
             }
             pInfo.selectLanguage(lang);
-            sender.sendMessage(ChatColor.YELLOW+"You are now speaking "+ChatColor.WHITE+lang.getName());
-        } else if (args[0].equals("info")) {
-            if (!sender.hasPermission(PERM_INFO)) {
-                sender.sendMessage(ChatColor.YELLOW+"You are not allowed to do that !");
-                return true;
-            }
-            final String USAGE_SELECT = ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/babel info <lang>";
-            if (args.length < 2) {
-                sender.sendMessage(USAGE_SELECT);
-                return true;
-            }
-            Language lang = languages.values().stream()
-                    .filter(l -> l.getName().equals(args[1])).findFirst().orElse(null);
-            if (lang == null) {
-                sender.sendMessage(ChatColor.YELLOW+"Invalid language name");
-                sender.sendMessage(USAGE_SELECT);
-                return true;
-            }
-            sender.sendMessage(ChatColor.YELLOW+"Language info: "+ChatColor.WHITE+lang.getName());
-            sender.sendMessage(ChatColor.YELLOW+"  Key: "+ChatColor.WHITE+lang.getKey());
-            sender.sendMessage(ChatColor.YELLOW+"  Alphabet: "+ChatColor.WHITE+lang.getAlphabet());
-            sender.sendMessage(ChatColor.YELLOW+"  Description: "+
-                    (lang.getDescription() == null ? ChatColor.GRAY+""+ChatColor.ITALIC+"No description" : ""));
-            if (lang.getDescription() != null) sender.sendMessage("    "+ChatColor.GRAY+lang.getDescription());
-            // TODO: Retrieve readers/speakers from DB
-            List<String> readers = playerInfos.values().stream().filter(p -> p.reads(lang))
-                    .map(i -> Utils.decoratePlayerName(i.getPlayerId(), i.getPlayerName())).collect(Collectors.toList());
-            List<String> speakers = playerInfos.values().stream().filter(p -> p.speaks(lang))
-                    .map(i -> Utils.decoratePlayerName(i.getPlayerId(), i.getPlayerName())).collect(Collectors.toList());
-            if (readers.size() > 0) {
-                sender.sendMessage(ChatColor.YELLOW+"  Readers ("+ChatColor.GRAY+readers.size()+ChatColor.YELLOW+"): ");
-                sender.sendMessage("    "+String.join(ChatColor.YELLOW+", ", readers));
-            } else {
-                sender.sendMessage(ChatColor.YELLOW+"  Readers: "+ChatColor.ITALIC+"None");
-            }
-            if (speakers.size() > 0) {
-                sender.sendMessage(ChatColor.YELLOW+"  Speakers ("+ChatColor.GRAY+speakers.size()+ChatColor.YELLOW+"): ");
-                sender.sendMessage("    "+String.join(ChatColor.YELLOW+", ", speakers));
-            } else {
-                sender.sendMessage(ChatColor.YELLOW+"  Speakers: "+ChatColor.ITALIC+"None");
-            }
+            sender.sendMessage(ChatColor.YELLOW+"You are now speaking "+
+                    (lang != null ? ChatColor.WHITE+lang.getName() : "in common tongue"));
         } else if (args[0].equals("set")) {
             if (!sender.hasPermission(PERM_EDIT_LEVEL)) {
                 sender.sendMessage(ChatColor.YELLOW+"You are not allowed to do that !");
@@ -217,8 +180,7 @@ public class AQLBabel implements IModule {
                 return true;
             }
             final String USAGE_LANG=ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/babel lang " +
-                    "(list)|(new <key> <alphabet>)|(name <key> <name>)|(desc <key> <desc>)|" +
-                    "(alphabet <key> <alphabet>)|(delete <key>)";
+                    "list/info/new/name/desc/alphabet/delete [<key>] [<value>]";
             if (args.length == 2 && args[1].equals("list")) {
                 sender.sendMessage(ChatColor.YELLOW+"Language list:");
                 for (Language lang : languages.values()) {
@@ -233,8 +195,37 @@ public class AQLBabel implements IModule {
                 return true;
             }
             String key = args[2];
-            Language lang = languages.get(key);
-            if (args[1].equals("new")) {
+            Language lang = getLanguage(key);
+            if (args[1].equals("info")) {
+                if (lang == null) {
+                    sender.sendMessage(ChatColor.YELLOW+"Unknown language");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.YELLOW+"Language info: "+ChatColor.WHITE+lang.getName());
+                sender.sendMessage(ChatColor.YELLOW+"  Key: "+ChatColor.WHITE+lang.getKey());
+                sender.sendMessage(ChatColor.YELLOW+"  Alphabet: "+ChatColor.WHITE+lang.getAlphabet());
+                sender.sendMessage(ChatColor.YELLOW+"  Description: "+
+                        (lang.getDescription() == null ? ChatColor.GRAY+""+ChatColor.ITALIC+"No description" : ""));
+                if (lang.getDescription() != null) sender.sendMessage("    "+ChatColor.GRAY+lang.getDescription());
+                // TODO: Retrieve readers/speakers from DB
+                Language language = lang;
+                List<String> readers = playerInfos.values().stream().filter(p -> p.reads(language))
+                        .map(i -> Utils.decoratePlayerName(i.getPlayerId(), i.getPlayerName())).collect(Collectors.toList());
+                List<String> speakers = playerInfos.values().stream().filter(p -> p.speaks(language))
+                        .map(i -> Utils.decoratePlayerName(i.getPlayerId(), i.getPlayerName())).collect(Collectors.toList());
+                if (readers.size() > 0) {
+                    sender.sendMessage(ChatColor.YELLOW+"  Readers ("+ChatColor.GRAY+readers.size()+ChatColor.YELLOW+"): ");
+                    sender.sendMessage("    "+String.join(ChatColor.YELLOW+", ", readers));
+                } else {
+                    sender.sendMessage(ChatColor.YELLOW+"  Readers: "+ChatColor.ITALIC+"None");
+                }
+                if (speakers.size() > 0) {
+                    sender.sendMessage(ChatColor.YELLOW+"  Speakers ("+ChatColor.GRAY+speakers.size()+ChatColor.YELLOW+"): ");
+                    sender.sendMessage("    "+String.join(ChatColor.YELLOW+", ", speakers));
+                } else {
+                    sender.sendMessage(ChatColor.YELLOW+"  Speakers: "+ChatColor.ITALIC+"None");
+                }
+            } else if (args[1].equals("new")) {
                 if (lang != null) {
                     sender.sendMessage(ChatColor.YELLOW+"A language already exists with this key");
                     return true;
@@ -312,13 +303,13 @@ public class AQLBabel implements IModule {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) return Stream.of("info", "select", "list", "set", "lang") // TODO: filter based on permissions
                 .filter(s -> args[0].length() < 1 || s.startsWith(args[0])).collect(Collectors.toList());
-        if (args.length == 2 && args[0].equals("info") && sender.hasPermission(PERM_INFO))
-            return languages.values().stream().map(Language::getName)
-                .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
-        if (args.length == 2 && args[0].equals("select") && sender instanceof Player)
-            return getPlayerInfo((Player) sender).getLanguages().stream().filter(l -> l.getLevel() > 0)
-                    .map(BabelPlayer.PlayerLanguage::getLanguage).map(l -> languages.get(l)).map(Language::getName)
+        if (args.length == 2 && args[0].equals("select") && sender instanceof Player) {
+            List<String> res = getPlayerInfo((Player) sender).getLanguages().stream().filter(l -> l.getLevel() > 0)
+                    .map(BabelPlayer.PlayerLanguage::getLanguage).map(this::getLanguage).map(Language::getName)
                     .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
+            res.add("none");
+            return res;
+        }
         if (args.length == 2 && args[0].equals("list")) return Bukkit.getOnlinePlayers().stream().map(Player::getName)
                 .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
         if (args.length == 2 && args[0].equals("set") && sender.hasPermission(PERM_EDIT_LEVEL))
@@ -333,10 +324,10 @@ public class AQLBabel implements IModule {
         if (args.length == 5 && args[0].equals("set") && sender.hasPermission(PERM_EDIT_LEVEL))
             return Collections.singletonList("<comment>");
         if (args.length == 2 && args[0].equals("lang") && sender.hasPermission(PERM_EDIT_LANG))
-            return Stream.of("list", "new", "name", "alphabet", "desc", "delete")
+            return Stream.of("list", "info", "new", "name", "alphabet", "desc", "delete")
                     .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
-        if (args.length == 3 && args[0].equals("lang") && !args[1].equals("new") && sender.hasPermission(PERM_EDIT_LANG))
-            return languages.keySet().stream()
+        if (args.length == 3 && args[0].equals("lang") && !args[1].equals("new") && !args[1].equals("list")
+                && sender.hasPermission(PERM_EDIT_LANG)) return languages.keySet().stream()
                     .filter(s -> args[2].length() < 1 || s.startsWith(args[2])).collect(Collectors.toList());
         return null;
     }
@@ -381,13 +372,14 @@ public class AQLBabel implements IModule {
         });
     }
 
-    private Language getLanguage(String lang) {
+    public Language getLanguage(String lang) {
         return languages.get(lang);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         // TODO: Load player languages
+        getPlayerInfo(event.getPlayer());
     }
 
     @EventHandler

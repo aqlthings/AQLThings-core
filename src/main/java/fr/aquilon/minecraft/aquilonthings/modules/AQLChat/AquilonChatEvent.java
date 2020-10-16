@@ -188,6 +188,9 @@ public class AquilonChatEvent extends Event implements Cancellable, AquilonEvent
         if (isCancelled()) return;
         Bukkit.getScheduler().runTask(AquilonThings.instance,
                 () -> Bukkit.getServer().getPluginManager().callEvent(this));
+    }
+
+    public void handleEvent() {
         if (isCancelled()) return;
 
         String msg = toMC();
