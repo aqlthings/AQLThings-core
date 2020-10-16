@@ -22,7 +22,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Auth;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Players;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Server;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Websocket;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.IOException;

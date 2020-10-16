@@ -1,8 +1,8 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model;
 
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import fr.aquilon.minecraft.utils.JSONUtils;
-import fr.aquilon.minecraft.utils.Utils;
 import org.json.JSONObject;
 
 import java.sql.Timestamp;

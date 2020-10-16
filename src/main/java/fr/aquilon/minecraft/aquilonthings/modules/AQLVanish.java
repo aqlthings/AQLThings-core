@@ -4,7 +4,7 @@ import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -95,7 +95,7 @@ public class AQLVanish implements IModule {
                 if (p == sender) {
                     sender.sendMessage(ChatColor.GRAY + "*poof* Vous êtes désormais " + ChatColor.GREEN + "visible" + ChatColor.GRAY + " aux joueurs normaux");
                 } else {
-                    sender.sendMessage(ChatColor.YELLOW + "*poof* Le joueur " + Utils.getPlayerColor(p) + p.getName() + ChatColor.YELLOW + " est désormais visible");
+                    sender.sendMessage(ChatColor.YELLOW + "*poof* Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " est désormais visible");
                     p.sendMessage(ChatColor.GRAY + "*poof* Vous êtes désormais " + ChatColor.GREEN + "visible" + ChatColor.GRAY + " aux joueurs normaux");
                 }
             } else {
@@ -105,7 +105,7 @@ public class AQLVanish implements IModule {
                 if (p == sender) {
                     sender.sendMessage(ChatColor.GRAY + "*poof* Vous êtes désormais " + ChatColor.GREEN + "invisible" + ChatColor.GRAY + " aux joueurs normaux");
                 } else {
-                    sender.sendMessage(ChatColor.YELLOW + "*poof* Le joueur " + Utils.getPlayerColor(p) + p.getName() + ChatColor.YELLOW + " est désormais invisible");
+                    sender.sendMessage(ChatColor.YELLOW + "*poof* Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " est désormais invisible");
                     p.sendMessage(ChatColor.GRAY + "*poof* Vous êtes désormais " + ChatColor.GREEN + "invisible" + ChatColor.GRAY + " aux joueurs normaux");
                 }
             }
@@ -120,7 +120,7 @@ public class AQLVanish implements IModule {
 
                     for (Player vanish : Bukkit.getOnlinePlayers()) {
                         if (isVanished(vanish)) {
-                            sender.sendMessage(ChatColor.YELLOW + "- " + Utils.getPlayerColor(vanish) + vanish.getName());
+                            sender.sendMessage(ChatColor.YELLOW + "- " + Utils.decoratePlayerName(vanish));
                         }
                     }
 
@@ -133,7 +133,7 @@ public class AQLVanish implements IModule {
                 if (p == sender) {
                     sender.sendMessage(ChatColor.YELLOW + "Vous êtes déjà invisible");
                 } else {
-                    sender.sendMessage(ChatColor.YELLOW + "Le joueur " + p.getName() + " est déjà invisible");
+                    sender.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + " est déjà invisible");
                 }
 
                 return true;
@@ -144,7 +144,7 @@ public class AQLVanish implements IModule {
             if (p == sender) {
                 sender.sendMessage(ChatColor.GRAY + "Vous êtes désormais " + ChatColor.GREEN + "invisible" + ChatColor.GRAY + " aux joueurs normaux");
             } else {
-                sender.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.getPlayerColor(p) + p.getName() + ChatColor.YELLOW + " est désormais invisible");
+                sender.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " est désormais invisible");
                 p.sendMessage(ChatColor.GRAY + "Vous êtes désormais " + ChatColor.GREEN + "invisible" + ChatColor.GRAY + " aux joueurs normaux");
             }
 
@@ -156,7 +156,7 @@ public class AQLVanish implements IModule {
                 if (p == sender) {
                     sender.sendMessage(ChatColor.YELLOW + "Vous êtes déjà visible");
                 } else {
-                    sender.sendMessage(ChatColor.YELLOW + "Le joueur " + p.getName() + ChatColor.YELLOW + " est déjà visible");
+                    sender.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " est déjà visible");
                 }
 
                 return true;
@@ -167,7 +167,7 @@ public class AQLVanish implements IModule {
             if (p == sender) {
                 sender.sendMessage(ChatColor.GRAY + "Vous êtes désormais " + ChatColor.GREEN + "visible" + ChatColor.GRAY + " aux joueurs normaux");
             } else {
-                sender.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.getPlayerColor(p) + p.getName() + ChatColor.YELLOW + " est désormais visible");
+                sender.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) + ChatColor.YELLOW + " est désormais visible");
                 p.sendMessage(ChatColor.GRAY + "Vous êtes désormais " + ChatColor.GREEN + "visible" + ChatColor.GRAY + " aux joueurs normaux");
             }
 

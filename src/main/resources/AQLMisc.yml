@@ -33,3 +33,9 @@ death:
   # about the death.
   # Default value:
   #messageRadius: -1
+
+players:
+  # When enabled, the module will update the player list name with the custom color, prefix and
+  # suffix set for this player.
+  # Default value:
+  #setPlayerListName: true

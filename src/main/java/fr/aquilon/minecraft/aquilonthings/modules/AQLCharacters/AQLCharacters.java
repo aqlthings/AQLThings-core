@@ -17,7 +17,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.CommonSkin
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.PlayerContext;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.TempCharacter;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -145,7 +145,7 @@ public class AQLCharacters implements IModule {
                     return true;
                 }
 				PlayerContext pCtx = PlayerContext.getFromPlayer(target, charDB);
-				String data = ChatColor.GRAY+"=== "+Utils.getPlayerColor(target)+target.getName()+
+				String data = ChatColor.GRAY+"=== "+Utils.decoratePlayerName(target)+
 						ChatColor.GRAY+" ===\n"+ChatColor.YELLOW;
 				if (pCtx.character == null) {
 					data += "Aucun personnage séléctionné\n";

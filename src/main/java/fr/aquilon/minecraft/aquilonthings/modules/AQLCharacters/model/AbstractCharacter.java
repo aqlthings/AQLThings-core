@@ -2,8 +2,8 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model;
 
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIForumUser;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONExportable;
-import fr.aquilon.minecraft.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.json.JSONObject;

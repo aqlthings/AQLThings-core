@@ -10,7 +10,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIStaticUser;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

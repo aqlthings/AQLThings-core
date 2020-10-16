@@ -25,7 +25,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers.TriggerFail
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers.TriggerLocalisation;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers.TriggerTypeEnum;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Biome;

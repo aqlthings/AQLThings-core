@@ -137,7 +137,7 @@ public class ChatHttpAPI extends APIModule {
     public void onChat(AquilonChatEvent chatEvent) {
         if (ws == null) return;
         JSONObject res = chatEvent.toJSON();
-        String suffix = (chatEvent.isConsole()?chatEvent.getSenderName():chatEvent.getPlayer().getUniqueId().toString().replace("-",""));
+        String suffix = (chatEvent.isConsole()?chatEvent.getSenderName():chatEvent.getSender().getUniqueId().toString().replace("-",""));
         ws.submitWSMessage("chat."+chatEvent.getChannel().getName().toLowerCase()+"."+suffix, res);
     }
 

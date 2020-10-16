@@ -5,10 +5,10 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.AQLCharacters;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.CharacterDatabase;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.CharacterPlayer;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.CharacterSkill;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import fr.aquilon.minecraft.utils.JSONPlayer;
 import fr.aquilon.minecraft.utils.JSONUtils;
-import fr.aquilon.minecraft.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -100,7 +100,7 @@ public class PlayerState implements JSONExportable {
 
     public String getColoredPlayerName() {
         // TODO: Check when offline
-        return Utils.getPlayerColor(player) + getPlayerName() + (!player.isOnline()?ChatColor.RED+"*":"");
+        return Utils.decoratePlayerName(player) + (!player.isOnline()?ChatColor.RED+"*":"");
     }
 
     public List<Injury> getInjuries() {
@@ -123,8 +123,10 @@ public class PlayerState implements JSONExportable {
     }
 
     public String getPlayerlistName(InjuryCounter ctx) {
-        if (!ctx.isStarted()) return Utils.getPlayerColor(player)+player.getName();
-        return getState().getColor().toString()+String.format("%3d", getScore())+ChatColor.WHITE+" | "+ Utils.getPlayerColor(getPlayer())+(ctx.isActive()?ChatColor.ITALIC:"")+getPlayerName();
+        if (!ctx.isStarted()) return Utils.decoratePlayerName(player);
+        return getState().getColor().toString()+
+                String.format("%3d", getScore()) + ChatColor.WHITE + " | " +
+                Utils.decoratePlayerName(playerUUUID, player.getName(), null, ctx.isActive() ? ChatColor.ITALIC : null, null);
     }
 
     /**

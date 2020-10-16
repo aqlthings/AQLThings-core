@@ -2,7 +2,8 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers;
 
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places.Place;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Rank;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -43,7 +44,11 @@ public class TriggerCommand extends Trigger {
 		// Remplacer le nom du monde sur lequel se trouve le joueur
 		command = command.replaceAll("\\{PlayerWorld\\}", p.getWorld().getName());
 		// Remplacer la couleur du joueur
-		command = command.replaceAll("\\{PlayerColor\\}", Utils.getPlayerColor(p));
+		Rank playerRank = Utils.getPlayerRank(p.getUniqueId());
+		command = command.replaceAll("\\{PlayerName\\}", playerRank != null ? playerRank.decorateUsername(p) : "");
+		command = command.replaceAll("\\{PlayerColor\\}", playerRank != null ? playerRank.getColor("") : "");
+		command = command.replaceAll("\\{PlayerPrefix\\}", playerRank != null ? playerRank.getPrefix("") : "");
+		command = command.replaceAll("\\{PlayerSuffix\\}", playerRank != null ? playerRank.getSuffix("") : "");
 		// Remplacer positions
 		command = command.replaceAll("\\{PlayerPosX\\}", Integer.toString(p.getLocation().getBlockX()));
 		command = command.replaceAll("\\{PlayerPosY\\}", Integer.toString(p.getLocation().getBlockY()));

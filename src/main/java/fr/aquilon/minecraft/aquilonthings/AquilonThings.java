@@ -16,7 +16,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLStaff;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVanish;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

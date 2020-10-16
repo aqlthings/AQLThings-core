@@ -5,7 +5,13 @@ import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
-import fr.aquilon.minecraft.utils.Utils;
+import fr.aquilon.minecraft.aquilonthings.utils.Utils;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.group.Group;
+import net.luckperms.api.model.group.GroupManager;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.model.user.UserManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -16,17 +22,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import ru.tehkode.permissions.PermissionUser;
-import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 
+// TODO: Fix usage of AQLVanish, check if it is enabled
 @AQLThingsModule(
         name = "AQLGroups",
         cmds = {
@@ -42,6 +50,7 @@ public class AQLGroups implements IModule {
     public static final String PERM_REFRESHGROUPS = AquilonThings.PERM_ROOT+".refreshgroups";
 
     private DatabaseConnector dbPhpBB = null;
+    private LuckPerms perms;
 
     private boolean initDatabase(){
         // Création du connecteur BDD.
@@ -63,6 +72,7 @@ public class AQLGroups implements IModule {
 
     @Override
     public boolean onStartUp(DatabaseConnector db) {
+        perms = LuckPermsProvider.get();
         return this.initDatabase();
     }
 
@@ -76,8 +86,12 @@ public class AQLGroups implements IModule {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String scmd, String[] args) {
-
-        if (scmd.equalsIgnoreCase("list") || scmd.equalsIgnoreCase("who") || scmd.equalsIgnoreCase("online") || scmd.equalsIgnoreCase("playerlist") || scmd.equalsIgnoreCase("players")) {
+        if (scmd.equalsIgnoreCase("list") ||
+                scmd.equalsIgnoreCase("who") ||
+                scmd.equalsIgnoreCase("online") ||
+                scmd.equalsIgnoreCase("playerlist") ||
+                scmd.equalsIgnoreCase("players")
+        ) {
             if (args.length != 0) return false;
             sender.sendMessage(this.getPlayerList(sender));
             return true;
@@ -93,15 +107,13 @@ public class AQLGroups implements IModule {
     }
 
     public boolean commandRefreshgroups(CommandSender sender, boolean silent) {
-        Collection<String> groups = PermissionsEx.getPermissionManager().getGroupNames();
+        UserManager users = perms.getUserManager();
+        GroupManager groups = perms.getGroupManager();
         for(Player player : Bukkit.getOnlinePlayers()) {
-            String userGroup = this.getPlayerPEXGroup(player);
-            PermissionUser pUser = PermissionsEx.getUser(player);
-            for (String g : groups) if (!g.equals(userGroup)) pUser.removeGroup(g);
-            pUser.addGroup(userGroup);
+            player.setPlayerListName(Utils.decoratePlayerName(player));
 
-            String prefix = Utils.getPlayerColor(player);
-            player.setPlayerListName(prefix + player.getName() + ChatColor.WHITE);
+            String groupName = this.getPlayerGroupName(player);
+            updatePlayerGroup(player, groupName, users, groups);
         }
 
         if (!silent) sender.sendMessage(ChatColor.YELLOW + "Rafraichissement des groupes effectué !");
@@ -110,50 +122,69 @@ public class AQLGroups implements IModule {
 
     @EventHandler
     public void playerJoin(PlayerJoinEvent event) {
-        String userGroup = this.getPlayerPEXGroup(event.getPlayer());
-        Collection<String> groups = PermissionsEx.getPermissionManager().getGroupNames();
-        PermissionUser pUser = PermissionsEx.getUser(event.getPlayer());
-        for (String g : groups) if (!g.equals(userGroup)) pUser.removeGroup(g);
-        pUser.addGroup(userGroup);
+        Player player = event.getPlayer();
+        String userGroup = this.getPlayerGroupName(event.getPlayer());
+        updatePlayerGroup(player, userGroup, null, null);
 
-        String prefix = Utils.getPlayerColor(event.getPlayer());
-        event.getPlayer().setPlayerListName(prefix + event.getPlayer().getName() + ChatColor.WHITE);
+        String playerName = Utils.decoratePlayerName(player);
+        player.setPlayerListName(playerName);
 
-        if(event.getPlayer().hasPermission(AQLVanish.PERM_VANISH_VAN) && AQLVanish.isVanished(event.getPlayer())) {
+        if(player.hasPermission(AQLVanish.PERM_VANISH_VAN) && AQLVanish.isVanished(player)) {
             event.setJoinMessage("");
             for(Player p : Bukkit.getOnlinePlayers()){
                 if (!p.hasPermission(AQLVanish.PERM_VANISH_SEE)) continue;
-                p.sendMessage(ChatColor.GREEN  + "[VANISH]" + prefix + event.getPlayer().getName() + ChatColor.YELLOW + " s'est connecté au serveur !");
+                p.sendMessage(ChatColor.GREEN  + "[VANISH]" + playerName + ChatColor.YELLOW + " s'est connecté au serveur !");
             }
         } else {
-            event.setJoinMessage(prefix + event.getPlayer().getName() + ChatColor.YELLOW + " s'est connecté au serveur !");
+            event.setJoinMessage(playerName + ChatColor.YELLOW + " s'est connecté au serveur !");
         }
 
-        event.getPlayer().sendMessage(this.getPlayerList(event.getPlayer()));
+        player.sendMessage(this.getPlayerList(player));
+    }
+
+    private boolean updatePlayerGroup(Player p, String groupName, UserManager userManager, GroupManager groupManager) {
+        UserManager users = userManager == null ? perms.getUserManager() : userManager;
+        GroupManager groups = groupManager == null ? perms.getGroupManager() : groupManager;
+        UUID playerId = p.getUniqueId();
+
+        User usr;
+        Optional<Group> optGroup;
+        try {
+            usr = users.loadUser(playerId).get();
+            optGroup = groups.loadGroup(groupName).get();
+        } catch (InterruptedException | ExecutionException e) {
+            LOGGER.log(Level.INFO, null, "Unable to load user/group permissions: "+playerId, e);
+            return false;
+        }
+        if (!optGroup.isPresent()) {
+            LOGGER.mInfo("Undefined permission group: "+groupName);
+            return false;
+        }
+        return usr.setPrimaryGroup(groupName).wasSuccessful();
     }
 
     @EventHandler
     public void playerQuit(PlayerQuitEvent event) {
-        String prefix = Utils.getPlayerColor(event.getPlayer());
+        Player player = event.getPlayer();
+        String playerName = Utils.decoratePlayerName(player);
 
-        if(event.getPlayer().hasPermission(AQLVanish.PERM_VANISH_VAN) && AQLVanish.isVanished(event.getPlayer())) {
+        if(player.hasPermission(AQLVanish.PERM_VANISH_VAN) && AQLVanish.isVanished(player)) {
             event.setQuitMessage("");
             for(Player p : Bukkit.getOnlinePlayers()){
                 if (!p.hasPermission(AQLVanish.PERM_VANISH_SEE)) continue;
-                p.sendMessage(ChatColor.GREEN  + "[VANISH]" + prefix + event.getPlayer().getName() + ChatColor.YELLOW + " a quitté le serveur !");
+                p.sendMessage(ChatColor.GREEN  + "[VANISH]" + playerName + ChatColor.YELLOW + " a quitté le serveur !");
             }
         } else {
-            event.setQuitMessage(prefix + event.getPlayer().getName() + ChatColor.YELLOW + " a quitté le serveur !");
+            event.setQuitMessage(playerName + ChatColor.YELLOW + " a quitté le serveur !");
         }
     }
 
     @EventHandler
     public void playerKickMessage(PlayerKickEvent event) {
-        String prefix = Utils.getPlayerColor(event.getPlayer());
-        event.setLeaveMessage(prefix + event.getPlayer().getName() + ChatColor.YELLOW + " a subi le courroux du jambon !");
+        event.setLeaveMessage(Utils.decoratePlayerName(event.getPlayer()) + ChatColor.YELLOW + " a subi le courroux du jambon !");
     }
 
-    public String getPlayerPEXGroup(Player player) {
+    public String getPlayerGroupName(Player player) {
         int user_id = 0;
         int group_id = 0;
         FileConfiguration config = AquilonThings.instance.getConfig();
@@ -196,10 +227,10 @@ public class AQLGroups implements IModule {
         List<String> list = new ArrayList<>();
         for (Player p : Bukkit.getOnlinePlayers()) {
             if(sender.hasPermission(AQLVanish.PERM_VANISH_SEE)){
-                list.add(((AQLVanish.isVanished(p)) ? ChatColor.GREEN  + "[VANISH]" : "") + Utils.getPlayerColor(p) + p.getName());
+                list.add(((AQLVanish.isVanished(p)) ? ChatColor.GREEN  + "[VANISH]" : "") + Utils.decoratePlayerName(p));
             } else {
                 if (AQLVanish.isVanished(p)) continue;
-                list.add(Utils.getPlayerColor(p) + p.getName());
+                list.add(Utils.decoratePlayerName(p));
             }
         }
 
