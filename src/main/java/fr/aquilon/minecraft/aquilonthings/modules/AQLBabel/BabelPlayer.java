@@ -79,8 +79,8 @@ public class BabelPlayer {
     }
 
     public void selectLanguage(Language lang) {
-        Objects.requireNonNull(lang);
-        if (!speaks(lang)) throw new IllegalArgumentException("Cannot select unknown language: "+lang.getName());
+        if (lang != null && !speaks(lang))
+            throw new IllegalArgumentException("Cannot select unknown language: "+lang.getName());
         selected = lang;
     }
 
