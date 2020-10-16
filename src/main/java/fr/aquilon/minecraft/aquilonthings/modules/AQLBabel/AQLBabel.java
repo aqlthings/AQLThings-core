@@ -118,19 +118,20 @@ public class AQLBabel implements IModule {
             }
             Language lang = languages.values().stream()
                     .filter(l -> l.getName().equals(args[1])).findFirst().orElse(null);
-            if (lang == null) {
+            if (!args[1].equals("none") && lang == null) {
                 sender.sendMessage(ChatColor.YELLOW+"Invalid language name");
                 sender.sendMessage(USAGE_SELECT);
                 return true;
             }
             Player target = (Player) sender;
             BabelPlayer pInfo = getPlayerInfo(target);
-            if (!pInfo.speaks(lang)) {
+            if (lang != null && !pInfo.speaks(lang)) {
                 sender.sendMessage(ChatColor.YELLOW+"You cannot select a language you do not speak");
                 return true;
             }
             pInfo.selectLanguage(lang);
-            sender.sendMessage(ChatColor.YELLOW+"You are now speaking "+ChatColor.WHITE+lang.getName());
+            sender.sendMessage(ChatColor.YELLOW+"You are now speaking "+
+                    (lang != null ? ChatColor.WHITE+lang.getName() : "in common tongue"));
         } else if (args[0].equals("info")) {
             if (!sender.hasPermission(PERM_INFO)) {
                 sender.sendMessage(ChatColor.YELLOW+"You are not allowed to do that !");
@@ -315,10 +316,13 @@ public class AQLBabel implements IModule {
         if (args.length == 2 && args[0].equals("info") && sender.hasPermission(PERM_INFO))
             return languages.values().stream().map(Language::getName)
                 .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
-        if (args.length == 2 && args[0].equals("select") && sender instanceof Player)
-            return getPlayerInfo((Player) sender).getLanguages().stream().filter(l -> l.getLevel() > 0)
+        if (args.length == 2 && args[0].equals("select") && sender instanceof Player) {
+            List<String> res = getPlayerInfo((Player) sender).getLanguages().stream().filter(l -> l.getLevel() > 0)
                     .map(BabelPlayer.PlayerLanguage::getLanguage).map(l -> languages.get(l)).map(Language::getName)
                     .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
+            res.add("none");
+            return res;
+        }
         if (args.length == 2 && args[0].equals("list")) return Bukkit.getOnlinePlayers().stream().map(Player::getName)
                 .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
         if (args.length == 2 && args[0].equals("set") && sender.hasPermission(PERM_EDIT_LEVEL))
