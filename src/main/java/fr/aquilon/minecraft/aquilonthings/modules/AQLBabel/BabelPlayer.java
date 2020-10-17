@@ -88,6 +88,10 @@ public class BabelPlayer {
         return new HashSet<>(languages.values());
     }
 
+    public PlayerLanguage getLanguage(String key) {
+        return languages.get(key);
+    }
+
     public static class PlayerLanguage {
         private final String language;
         private final int level;

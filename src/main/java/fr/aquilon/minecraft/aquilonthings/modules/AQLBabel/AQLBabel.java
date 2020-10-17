@@ -17,12 +17,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,23 +50,33 @@ public class AQLBabel implements IModule {
     public static final String PERM_EDIT_LANG = AquilonThings.PERM_ROOT + ".babel.edit.lang";
     public static final String PERM_EDIT_LEVEL = AquilonThings.PERM_ROOT + ".babel.edit.level";
 
-    private static final String SQL_FIND_PLAYER_INFO = "SELECT * FROM aqlbabel_player_lang WHERE player = ? ";
-    private static final String SQL_UPDATE_PLAYER_INFO = "INSERT INTO aqlbabel_player_lang VALUES " +
-            "(?, ?, ?, ?) ON DUPLICATE KEY UPDATE level = ?, comment = ?";
+    private static final String SQL_FIND_ALL_LANGS = "SELECT * FROM aqlbabel_lang";
+    private static final String SQL_FIND_LANG_PLAYERS = "SELECT pl.*, p.player_name " +
+            "FROM aqlbabel_player p, aqlbabel_player_lang pl " +
+            "WHERE pl.lang = ? AND p.player = pl.player AND pl.lvl > 0";
+    private static final String SQL_FIND_PLAYER_INFO = "SELECT * FROM aqlbabel_player WHERE player = ? ";
+    private static final String SQL_FIND_PLAYER_LANGS = "SELECT * FROM aqlbabel_player_lang WHERE player = ? ";
+    private static final String SQL_UPDATE_PLAYER_INFO = "INSERT INTO aqlbabel_player VALUES " +
+            "(?, ?, ?) ON DUPLICATE KEY UPDATE player_name = ?, selected_lang = ?";
+    private static final String SQL_UPDATE_PLAYER_LANGS = "INSERT INTO aqlbabel_player_lang VALUES " +
+            "(?, ?, ?, ?) ON DUPLICATE KEY UPDATE lvl = ?, comment = ?";
+    private static final String SQL_UPDATE_LANGUAGE = "INSERT INTO aqlbabel_lang VALUES " +
+            "(?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, alphabet = ?, description = ?";
+    private static final String SQL_RESET_PLAYER_LANG = "UPDATE aqlbabel_player " +
+            "SET selected_lang = null WHERE selected_lang = ?";
+    private static final String SQL_DELETE_PLAYER_LANG = "DELETE FROM aqlbabel_player_lang WHERE lang = ?";
+    private static final String SQL_DELETE_LANG = "DELETE FROM aqlbabel_lang WHERE lang = ?";
 
     private DatabaseConnector db;
-    private HashMap<String, Language> languages;
-    private HashMap<String, BabelPlayer> playerInfos;
+    private Map<String, Language> languages;
+    private Map<String, BabelPlayer> playerInfos;
 
     @Override
     public boolean onStartUp(DatabaseConnector db) {
         this.db = db;
-        languages = new HashMap<>();
-        languages.put("ru", new Language("ru", "Russian", "абвгдеёжзийлмнорстуфхцчшщъыьэюя"));
-        languages.put("gr", new Language("gr", "Greek", "αβγδεζηθικλμνξοπρσςτυφχψω"));
-        // TODO: Load languages
+        languages = retrieveLanguages();
         playerInfos = new HashMap<>();
-        // TODO: Load connected player infos
+        for (Player p : Bukkit.getOnlinePlayers()) getPlayerInfo(p);
         return true;
     }
 
@@ -96,9 +115,12 @@ public class AQLBabel implements IModule {
                 return true;
             }
             BabelPlayer targetInfo = getPlayerInfo(target);
+            Set<BabelPlayer.PlayerLanguage> pLangs = targetInfo.getLanguages().stream()
+                    .filter(l -> l.getLevel() > 0).collect(Collectors.toSet());
             sender.sendMessage(ChatColor.YELLOW+"Known languages"+
-                    (self ? "" : " for "+Utils.decoratePlayerName(target))+ChatColor.YELLOW+":");
-            for (BabelPlayer.PlayerLanguage pLang : targetInfo.getLanguages()) {
+                    (self ? "" : " for "+Utils.decoratePlayerName(target))+" ("+ChatColor.GRAY+pLangs.size()+
+                    ChatColor.YELLOW+"):"+(pLangs.size()==0 ? ChatColor.GRAY+""+ChatColor.ITALIC+" None" : ""));
+            for (BabelPlayer.PlayerLanguage pLang : pLangs) {
                 if (pLang.getLevel() < 1) continue;
                 Language lang = getLanguage(pLang.getLanguage());
                 sender.sendMessage("  "+ChatColor.WHITE+lang.getName()+ChatColor.YELLOW+
@@ -132,6 +154,7 @@ public class AQLBabel implements IModule {
                 return true;
             }
             pInfo.selectLanguage(lang);
+            updatePlayerInfo(pInfo);
             sender.sendMessage(ChatColor.YELLOW+"You are now speaking "+
                     (lang != null ? ChatColor.WHITE+lang.getName() : "in common tongue"));
         } else if (args[0].equals("set")) {
@@ -170,7 +193,7 @@ public class AQLBabel implements IModule {
             String comment = args.length > 4 ? Utils.joinStrings(args, " ", 4) : null;
             BabelPlayer pInfo = getPlayerInfo(target);
             pInfo.setLanguage(lang, level, comment);
-            // TODO: save player info
+            updatePlayerLanguage(pInfo, lang.getKey());
             sender.sendMessage(ChatColor.YELLOW+"Saved player level in "+ChatColor.WHITE+lang.getName()+
                     ChatColor.YELLOW+": "+ChatColor.WHITE+level+
                     (comment != null ? ChatColor.YELLOW+", "+ChatColor.GRAY+comment : ""));
@@ -182,7 +205,8 @@ public class AQLBabel implements IModule {
             final String USAGE_LANG=ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/babel lang " +
                     "list/info/new/name/desc/alphabet/delete [<key>] [<value>]";
             if (args.length == 2 && args[1].equals("list")) {
-                sender.sendMessage(ChatColor.YELLOW+"Language list:");
+                sender.sendMessage(ChatColor.YELLOW+"Language list ("+ChatColor.GRAY+languages.size()+ChatColor.YELLOW+
+                        "):"+(languages.size()==0 ? ChatColor.GRAY+""+ChatColor.ITALIC+" No language" : ""));
                 for (Language lang : languages.values()) {
                     sender.sendMessage("  "+ChatColor.WHITE+lang.getKey()+ChatColor.YELLOW+" ("+
                             ChatColor.WHITE+lang.getName()+ChatColor.YELLOW+"): "+ChatColor.GRAY+
@@ -207,23 +231,27 @@ public class AQLBabel implements IModule {
                 sender.sendMessage(ChatColor.YELLOW+"  Description: "+
                         (lang.getDescription() == null ? ChatColor.GRAY+""+ChatColor.ITALIC+"No description" : ""));
                 if (lang.getDescription() != null) sender.sendMessage("    "+ChatColor.GRAY+lang.getDescription());
-                // TODO: Retrieve readers/speakers from DB
                 Language language = lang;
-                List<String> readers = playerInfos.values().stream().filter(p -> p.reads(language))
+                Set<BabelPlayer> players = retrieveLanguagePlayers(language);
+                if (players == null) {
+                    sender.sendMessage(ChatColor.YELLOW+"Error: Unable to retrieve reader/speaker list");
+                    return true;
+                }
+                List<String> readers = players.stream().filter(p -> p.reads(language))
                         .map(i -> Utils.decoratePlayerName(i.getPlayerId(), i.getPlayerName())).collect(Collectors.toList());
-                List<String> speakers = playerInfos.values().stream().filter(p -> p.speaks(language))
+                List<String> speakers = players.stream().filter(p -> p.speaks(language))
                         .map(i -> Utils.decoratePlayerName(i.getPlayerId(), i.getPlayerName())).collect(Collectors.toList());
                 if (readers.size() > 0) {
                     sender.sendMessage(ChatColor.YELLOW+"  Readers ("+ChatColor.GRAY+readers.size()+ChatColor.YELLOW+"): ");
                     sender.sendMessage("    "+String.join(ChatColor.YELLOW+", ", readers));
                 } else {
-                    sender.sendMessage(ChatColor.YELLOW+"  Readers: "+ChatColor.ITALIC+"None");
+                    sender.sendMessage(ChatColor.YELLOW+"  Readers: "+ChatColor.GRAY+""+ChatColor.ITALIC+"None");
                 }
                 if (speakers.size() > 0) {
                     sender.sendMessage(ChatColor.YELLOW+"  Speakers ("+ChatColor.GRAY+speakers.size()+ChatColor.YELLOW+"): ");
                     sender.sendMessage("    "+String.join(ChatColor.YELLOW+", ", speakers));
                 } else {
-                    sender.sendMessage(ChatColor.YELLOW+"  Speakers: "+ChatColor.ITALIC+"None");
+                    sender.sendMessage(ChatColor.YELLOW+"  Speakers: "+ChatColor.GRAY+""+ChatColor.ITALIC+"None");
                 }
             } else if (args[1].equals("new")) {
                 if (lang != null) {
@@ -235,8 +263,8 @@ public class AQLBabel implements IModule {
                     return true;
                 }
                 lang = new Language(key, key, args[3]);
-                // TODO: save language
                 languages.put(key, lang);
+                saveLanguage(lang);
                 sender.sendMessage(ChatColor.YELLOW+"Created language: "+ChatColor.WHITE+key);
             } else if (args[1].equals("name")) {
                 if (lang == null) {
@@ -248,7 +276,7 @@ public class AQLBabel implements IModule {
                     return true;
                 }
                 lang.setName(args[3]);
-                // TODO: save language
+                saveLanguage(lang);
                 sender.sendMessage(ChatColor.YELLOW+"Saved new name for "+ChatColor.WHITE+key+ChatColor.YELLOW+": "+
                         ChatColor.WHITE+lang.getName());
             } else if (args[1].equals("desc")) {
@@ -261,7 +289,7 @@ public class AQLBabel implements IModule {
                     return true;
                 }
                 lang.setDescription(Utils.joinStrings(args, " ", 3));
-                // TODO: save language
+                saveLanguage(lang);
                 sender.sendMessage(ChatColor.YELLOW+"Saved description for "+ChatColor.WHITE+key+ChatColor.YELLOW+": "+
                         ChatColor.GRAY+lang.getDescription());
             } else if (args[1].equals("alphabet")) {
@@ -274,7 +302,7 @@ public class AQLBabel implements IModule {
                     return true;
                 }
                 lang.setAlphabet(args[3]);
-                // TODO: save language
+                saveLanguage(lang);
                 sender.sendMessage(ChatColor.YELLOW+"Saved alphabet for "+ChatColor.WHITE+key+ChatColor.YELLOW+": "+
                         ChatColor.WHITE+lang.getAlphabet());
             } else if (args[1].equals("delete")) {
@@ -283,8 +311,9 @@ public class AQLBabel implements IModule {
                     return true;
                 }
                 languages.remove(key);
-                // TODO: delete player language references, delete language
-                // TODO: update player cache to remove references to deleted language
+                deleteLanguage(key);
+                playerInfos.clear();
+                for (Player p : Bukkit.getOnlinePlayers()) getPlayerInfo(p);
                 sender.sendMessage(ChatColor.YELLOW+"Deleted language "+ChatColor.WHITE+key+ChatColor.YELLOW+" ("+
                         ChatColor.WHITE+lang.getName()+ChatColor.YELLOW+"): "+ChatColor.GRAY+
                         (lang.getDescription() != null ? lang.getDescription() : ChatColor.ITALIC+"No description"));
@@ -301,16 +330,22 @@ public class AQLBabel implements IModule {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) return Stream.of("info", "select", "list", "set", "lang") // TODO: filter based on permissions
-                .filter(s -> args[0].length() < 1 || s.startsWith(args[0])).collect(Collectors.toList());
+        if (args.length == 1) {
+            List<String> res = new ArrayList<>();
+            res.add("select");
+            if (sender.hasPermission(PERM_EDIT_LEVEL)) res.add("set");
+            if (sender.hasPermission(PERM_EDIT_LANG)) res.add("lang");
+            if (sender.hasPermission(PERM_INFO_SELF) || sender.hasPermission(PERM_INFO_OTHERS)) res.add("info");
+            return res.stream().filter(s -> args[0].length() < 1 || s.startsWith(args[0])).collect(Collectors.toList());
+        }
         if (args.length == 2 && args[0].equals("select") && sender instanceof Player) {
-            List<String> res = getPlayerInfo((Player) sender).getLanguages().stream().filter(l -> l.getLevel() > 0)
+            List<String> res = getPlayerInfo((Player) sender).getLanguages().stream().filter(l -> l.getLevel() >= 2)
                     .map(BabelPlayer.PlayerLanguage::getLanguage).map(this::getLanguage).map(Language::getName)
                     .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
             res.add("none");
             return res;
         }
-        if (args.length == 2 && args[0].equals("list")) return Bukkit.getOnlinePlayers().stream().map(Player::getName)
+        if (args.length == 2 && args[0].equals("info")) return Bukkit.getOnlinePlayers().stream().map(Player::getName)
                 .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
         if (args.length == 2 && args[0].equals("set") && sender.hasPermission(PERM_EDIT_LEVEL))
             return Bukkit.getOnlinePlayers().stream().map(Player::getName)
@@ -358,16 +393,19 @@ public class AQLBabel implements IModule {
             targets.remove();
             target.sendMessage(garbledMessage);
         }
-        sender.sendMessage("[Babel]"+garbledMessage); // FIXME: Remove me ! Debug only !
+        sender.sendMessage("[Babel]"+garbledMessage); // Debug
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        getPlayerInfo(event.getPlayer());
     }
 
     public BabelPlayer getPlayerInfo(Player target) {
         return playerInfos.computeIfAbsent(target.getUniqueId().toString().replaceAll("-",""), id -> {
-            // TODO: load from DB;
-            BabelPlayer res = new BabelPlayer(target);
-            Language lang = getLanguage("ru");
-            res.setLanguage(lang, 2, "Basic spoken level");
-            res.selectLanguage(lang);
+            BabelPlayer res = retrieveBabelPlayer(target.getUniqueId());
+            if (res == null) res = new BabelPlayer(target);
+            else res.setPlayerName(target.getName());
             return res;
         });
     }
@@ -376,18 +414,196 @@ public class AQLBabel implements IModule {
         return languages.get(lang);
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        // TODO: Load player languages
-        getPlayerInfo(event.getPlayer());
+    /**
+     * Retrieve BabelPlayer from database from it's UUID
+     * @param playerId The player UUID
+     * @return The player info, or <code>null</code> if not found or if there was an error
+     */
+    private BabelPlayer retrieveBabelPlayer(UUID playerId) {
+        String uuid = Objects.requireNonNull(playerId).toString().replaceAll("-","");
+        Connection con = db.startTransaction();
+        BabelPlayer res = null;
+        String selectedLang = null;
+        try {
+            PreparedStatement stmt = db.prepare(con, SQL_FIND_PLAYER_INFO);
+            stmt.setString(1, uuid);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                res = new BabelPlayer(playerId, rs.getString("player_name"));
+                selectedLang = rs.getString("selected_lang");
+            }
+        } catch (SQLException e) {
+            db.endTransaction(con, e, SQL_FIND_PLAYER_INFO);
+            return null;
+        }
+        if (res == null) {
+            db.endTransaction(con);
+            return null;
+        }
+        try {
+            PreparedStatement stmt = db.prepare(con, SQL_FIND_PLAYER_LANGS);
+            stmt.setString(1, uuid);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                res.setLanguage(
+                        getLanguage(rs.getString("lang")),
+                        rs.getInt("lvl"),
+                        rs.getString("comment"));
+            }
+        } catch (SQLException e) {
+            db.endTransaction(con, e, SQL_FIND_PLAYER_LANGS);
+            return null;
+        }
+        db.endTransaction(con);
+        if (selectedLang != null) res.selectLanguage(getLanguage(selectedLang));
+        return res;
     }
 
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        // TODO: Drop player languages
+    /**
+     * Retrieve all languages from database
+     */
+    private Map<String, Language> retrieveLanguages() {
+        Connection con = db.startTransaction();
+        Map<String, Language> res;
+        try {
+            PreparedStatement stmt = db.prepare(con, SQL_FIND_ALL_LANGS);
+            ResultSet rs = stmt.executeQuery();
+            res = new HashMap<>();
+            while (rs.next()) {
+                String langKey = rs.getString("lang");
+                res.put(langKey, new Language(langKey,
+                        rs.getString("name"),
+                        rs.getString("alphabet"),
+                        rs.getString("description")));
+            }
+        } catch (SQLException e) {
+            db.endTransaction(con, e, SQL_FIND_ALL_LANGS);
+            return null;
+        }
+        db.endTransaction(con);
+        return res;
     }
 
-    public void loadPlayerInfo(UUID uuid) {
-        // TODO: Retrieve player info from database
+    /**
+     * Save the player information in database
+     * @param info The player info
+     * @return <code>true</code> on success, <code>false</code> otherwise
+     */
+    public boolean updatePlayerInfo(BabelPlayer info) {
+        String uuid = Objects.requireNonNull(info).getPlayerId().toString().replaceAll("-","");
+        Connection con = db.startTransaction();
+        String selectedLanguage = info.getSelectedLanguage() != null ? info.getSelectedLanguage().getKey() : null;
+        try {
+            PreparedStatement stmt = db.prepare(con, SQL_UPDATE_PLAYER_INFO);
+            stmt.setString(1, uuid);
+            stmt.setString(2, info.getPlayerName());
+            stmt.setString(4, info.getPlayerName());
+            stmt.setString(3, selectedLanguage);
+            stmt.setString(5, selectedLanguage);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            db.endTransaction(con, e, SQL_UPDATE_PLAYER_INFO);
+            return false;
+        }
+        db.endTransaction(con);
+        return true;
+    }
+
+    /**
+     * Save a player language in database
+     * @param info The player info
+     * @param langKey The key of language to save
+     * @return <code>true</code> on success, <code>false</code> otherwise
+     */
+    public boolean updatePlayerLanguage(BabelPlayer info, String langKey) {
+        if (!updatePlayerInfo(info)) return false;
+        BabelPlayer.PlayerLanguage lang = Objects.requireNonNull(info).getLanguage(Objects.requireNonNull(langKey));
+        if (lang == null) throw new IllegalArgumentException("Unknown language for player: "+info.getPlayerId());
+        String uuid = info.getPlayerId().toString().replaceAll("-","");
+        Connection con = db.startTransaction();
+        try {
+            PreparedStatement stmt = db.prepare(con, SQL_UPDATE_PLAYER_LANGS);
+            stmt.setString(1, uuid);
+            stmt.setString(2, lang.getLanguage());
+            stmt.setInt(3, lang.getLevel());
+            stmt.setInt(5, lang.getLevel());
+            stmt.setString(4, lang.getComment());
+            stmt.setString(6, lang.getComment());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            db.endTransaction(con, e, SQL_UPDATE_PLAYER_LANGS);
+            return false;
+        }
+        db.endTransaction(con);
+        return true;
+    }
+
+    /**
+     * Save the language in database
+     * @param lang The language to save
+     * @return <code>true</code> on success, <code>false</code> otherwise
+     */
+    public boolean saveLanguage(Language lang) {
+        Objects.requireNonNull(lang);
+        Connection con = db.startTransaction();
+        try {
+            PreparedStatement stmt = db.prepare(con, SQL_UPDATE_LANGUAGE);
+            stmt.setString(1, lang.getKey());
+            stmt.setString(2, lang.getName());
+            stmt.setString(5, lang.getName());
+            stmt.setString(3, lang.getAlphabet());
+            stmt.setString(6, lang.getAlphabet());
+            stmt.setString(4, lang.getDescription());
+            stmt.setString(7, lang.getDescription());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            db.endTransaction(con, e, SQL_UPDATE_LANGUAGE);
+            return false;
+        }
+        db.endTransaction(con);
+        return true;
+    }
+
+    private boolean deleteLanguage(String langKey) {
+        Objects.requireNonNull(langKey);
+        Connection con = db.startTransaction(false);
+        for (String sql : Arrays.asList(SQL_RESET_PLAYER_LANG, SQL_DELETE_PLAYER_LANG, SQL_DELETE_LANG)) try {
+            PreparedStatement stmt = db.prepare(con, sql);
+            stmt.setString(1, langKey);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            db.endTransaction(con, e, sql);
+            return false;
+        }
+        db.endTransaction(con);
+        return true;
+    }
+
+    /**
+     * Retrieve all BabelPlayer that know the language
+     * @param lang The language
+     * @return A set of <b>incomplete</b> BabelPlayer
+     */
+    public Set<BabelPlayer> retrieveLanguagePlayers(Language lang) {
+        Objects.requireNonNull(lang);
+        Connection con = db.startTransaction();
+        Set<BabelPlayer> res;
+        try {
+            PreparedStatement stmt = db.prepare(con, SQL_FIND_LANG_PLAYERS);
+            stmt.setString(1, lang.getKey());
+            ResultSet rs = stmt.executeQuery();
+            res = new HashSet<>();
+            while (rs.next()) {
+                BabelPlayer p = new BabelPlayer(Utils.getUUID(rs.getString("player")),
+                        rs.getString("player_name"));
+                p.setLanguage(lang, rs.getInt("lvl"), rs.getString("comment"));
+                res.add(p);
+            }
+        } catch (SQLException e) {
+            db.endTransaction(con, e, SQL_FIND_LANG_PLAYERS);
+            return null;
+        }
+        db.endTransaction(con);
+        return res;
     }
 }
