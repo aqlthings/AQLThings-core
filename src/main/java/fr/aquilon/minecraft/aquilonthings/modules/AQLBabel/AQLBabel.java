@@ -49,6 +49,9 @@ public class AQLBabel implements IModule {
     public static final String PERM_INFO_OTHERS = AquilonThings.PERM_ROOT + ".babel.info.others";
     public static final String PERM_EDIT_LANG = AquilonThings.PERM_ROOT + ".babel.edit.lang";
     public static final String PERM_EDIT_LEVEL = AquilonThings.PERM_ROOT + ".babel.edit.level";
+    public static final String PERM_LANG = AquilonThings.PERM_ROOT + ".babel.lang";
+    public static final String PERM_LANG_SPEAK = PERM_LANG + ".speak.";
+    public static final String PERM_LANG_READ = PERM_LANG + ".read.";
 
     private static final String SQL_FIND_ALL_LANGS = "SELECT * FROM aqlbabel_lang";
     private static final String SQL_FIND_LANG_PLAYERS = "SELECT pl.*, p.player_name " +
@@ -117,9 +120,9 @@ public class AQLBabel implements IModule {
             BabelPlayer targetInfo = getPlayerInfo(target);
             Set<BabelPlayer.PlayerLanguage> pLangs = targetInfo.getLanguages().stream()
                     .filter(l -> l.getLevel() > 0).collect(Collectors.toSet());
-            sender.sendMessage(ChatColor.YELLOW+"Known languages"+
-                    (self ? "" : " for "+Utils.decoratePlayerName(target))+" ("+ChatColor.GRAY+pLangs.size()+
-                    ChatColor.YELLOW+"):"+(pLangs.size()==0 ? ChatColor.GRAY+""+ChatColor.ITALIC+" None" : ""));
+            sender.sendMessage(ChatColor.YELLOW+"Known languages"+(self ? "" : " for "+Utils.decoratePlayerName(target))
+                    +ChatColor.YELLOW+" ("+ChatColor.GRAY+pLangs.size()+ChatColor.YELLOW+"):"+
+                    (pLangs.size()==0 ? ChatColor.GRAY+""+ChatColor.ITALIC+" None" : ""));
             for (BabelPlayer.PlayerLanguage pLang : pLangs) {
                 if (pLang.getLevel() < 1) continue;
                 Language lang = getLanguage(pLang.getLanguage());
@@ -145,6 +148,10 @@ public class AQLBabel implements IModule {
             if (!args[1].equals("none") && lang == null) {
                 sender.sendMessage(ChatColor.YELLOW+"Invalid language name");
                 sender.sendMessage(USAGE_SELECT);
+                return true;
+            }
+            if (lang != null && !sender.hasPermission(PERM_LANG_SPEAK.concat(lang.getKey()))) {
+                sender.sendMessage(ChatColor.YELLOW+"You are not allowed to speak in this language");
                 return true;
             }
             Player target = (Player) sender;
@@ -389,11 +396,11 @@ public class AQLBabel implements IModule {
         while (targets.hasNext()) {
             Player target = targets.next();
             if (getPlayerInfo(target).reads(senderLang)) continue;
+            if (target.hasPermission(AQLBabel.PERM_LANG_READ.concat(senderLang.getKey()))) continue;
             // Target doesn't speak language, send garbled message
             targets.remove();
             target.sendMessage(garbledMessage);
         }
-        sender.sendMessage("[Babel]"+garbledMessage); // Debug
     }
 
     @EventHandler
