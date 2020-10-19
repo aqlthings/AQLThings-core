@@ -11,6 +11,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.IModule;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -408,17 +409,25 @@ public class AQLBabel implements IModule {
         getPlayerInfo(event.getPlayer());
     }
 
-    public BabelPlayer getPlayerInfo(Player target) {
-        return playerInfos.computeIfAbsent(target.getUniqueId().toString().replaceAll("-",""), id -> {
-            BabelPlayer res = retrieveBabelPlayer(target.getUniqueId());
-            if (res == null) res = new BabelPlayer(target);
-            else res.setPlayerName(target.getName());
+    public BabelPlayer getPlayerInfo(OfflinePlayer target) {
+        return getPlayerInfo(target.getUniqueId(), target.getName());
+    }
+
+    public BabelPlayer getPlayerInfo(UUID playerId, String playerName) {
+        return playerInfos.computeIfAbsent(playerId.toString().replaceAll("-",""), id -> {
+            BabelPlayer res = retrieveBabelPlayer(playerId);
+            if (res == null) res = new BabelPlayer(playerId, playerName);
+            else res.setPlayerName(playerName);
             return res;
         });
     }
 
     public Language getLanguage(String lang) {
         return languages.get(lang);
+    }
+
+    public Set<Language> getLanguages() {
+        return new HashSet<>(languages.values());
     }
 
     /**

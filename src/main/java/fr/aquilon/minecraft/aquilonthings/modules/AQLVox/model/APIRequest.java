@@ -249,7 +249,7 @@ public class APIRequest implements JSONExportable {
             String dashed = Utils.addUuidDashes(value);
             if (dashed == null) {
                 throw new APIError(APIError.APIErrorEnum.ERROR_BAD_REQUEST, APIError.SUBERR_INVALID_REQUEST_PARAM,
-                        "Inavlid parameter value, expected UUID")
+                        "Invalid parameter value, expected UUID")
                         .addData("param", template.getName());
             }
             return UUID.fromString(dashed);
