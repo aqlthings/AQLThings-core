@@ -179,14 +179,14 @@ public class AQLMarkers implements IModule {
 		}
         if (args[0].equals("reload")) {
             if (!sender.hasPermission(AquilonThings.PERM_ROOT+".markers.reload")) {
-                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions");
+                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions)");
                 return true;
             }
             loadMarkers();
             sender.sendMessage(ChatColor.YELLOW+"Reloaded all markers and groups ...");
         } else if (args[0].equals("list")) {
             if (!sender.hasPermission(AquilonThings.PERM_ROOT+".markers.list")) {
-                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions");
+                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions)");
                 return true;
             }
             int page = 1;
@@ -203,7 +203,7 @@ public class AQLMarkers implements IModule {
                 return true;
             }
             if (!sender.hasPermission(AquilonThings.PERM_ROOT+".markers.edit")) {
-                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions");
+                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions)");
                 return true;
             }
             if (args.length < 2) {
@@ -252,7 +252,7 @@ public class AQLMarkers implements IModule {
                 return true;
             }
             if (!sender.hasPermission(AquilonThings.PERM_ROOT+".markers.edit")) {
-                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions");
+                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions)");
                 return true;
             }
             if (args.length < 2) {
@@ -292,14 +292,14 @@ public class AQLMarkers implements IModule {
             sender.sendMessage(ChatColor.YELLOW+"Saved marker: "+ChatColor.WHITE+m.asString());
         } else if (args[0].equals("group")) {
             if (!sender.hasPermission(AquilonThings.PERM_ROOT+".markers.edit")) {
-                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions");
+                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions)");
                 return true;
             }
 			commandMarkerGroup(sender, args);
 			return true;
 		} else if (args[0].equals("delete")) {
             if (!sender.hasPermission(AquilonThings.PERM_ROOT+".markers.edit")) {
-                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions");
+                sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions)");
                 return true;
             }
 		    if (args.length < 3) {
@@ -479,7 +479,7 @@ public class AQLMarkers implements IModule {
 
 	public boolean commandGoTo(CommandSender sender, String[] args) {
         if (!sender.hasPermission(AquilonThings.PERM_ROOT+".markers.use")) {
-            sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions");
+            sender.sendMessage(ChatColor.YELLOW+"Forbidden (missing permissions)");
             return true;
         }
 		if (args.length < 1) {

@@ -1,6 +1,8 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLBabel;
 
+import fr.aquilon.minecraft.utils.JSONExportable;
 import org.bukkit.entity.Player;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,7 +94,7 @@ public class BabelPlayer {
         return languages.get(key);
     }
 
-    public static class PlayerLanguage {
+    public static class PlayerLanguage implements JSONExportable {
         private final String language;
         private final int level;
         private final String comment;
@@ -117,6 +119,15 @@ public class BabelPlayer {
 
         public String getComment() {
             return comment;
+        }
+
+        @Override
+        public JSONObject toJSON() {
+            JSONObject res = new JSONObject();
+            res.put("language", language);
+            res.put("level", level);
+            res.put("comment", comment != null ? comment : JSONObject.NULL);
+            return res;
         }
     }
 }

@@ -1,12 +1,15 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLBabel;
 
+import fr.aquilon.minecraft.utils.JSONExportable;
+import org.json.JSONObject;
+
 import java.util.Objects;
 
 /**
  * Represents a single language
  * @author BilliAlpha <billi.pamege.300@gmail.com>
  */
-public class Language {
+public class Language implements JSONExportable {
     private final String key;
     private String name;
     private String alphabet;
@@ -73,5 +76,15 @@ public class Language {
             word++;
         }
         return output.toString();
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject res = new JSONObject();
+        res.put("key", key);
+        res.put("name", name != null ? name : JSONObject.NULL);
+        res.put("description", desc != null ? desc : JSONObject.NULL);
+        res.put("alphabet", alphabet != null ? alphabet : JSONObject.NULL);
+        return res;
     }
 }
