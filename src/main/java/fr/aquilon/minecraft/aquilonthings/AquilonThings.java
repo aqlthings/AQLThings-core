@@ -1,6 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings;
 
 import fr.aquilon.minecraft.aquilonthings.modules.AQLBlessures.AQLBlessures;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLCalendar.AQLCalendar;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.AQLCharacters;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLChat.AQLChat;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLEmotes.AQLEmotes;
@@ -11,7 +12,6 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLMisc;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLNobles;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.AQLPlaces;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLRegionBorder;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLSeason.AQLSeason;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLStaff;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVanish;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
@@ -68,7 +68,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 			AQLMisc.class,
 			AQLStaff.class,
 			AQLCharacters.class,
-			AQLSeason.class,
+			AQLCalendar.class,
 			AQLLooting.class,
             AQLRegionBorder.class
 	};
