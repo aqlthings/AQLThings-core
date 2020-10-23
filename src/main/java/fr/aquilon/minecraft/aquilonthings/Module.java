@@ -13,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.messaging.PluginMessageListenerRegistration;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,7 +85,15 @@ public class Module<T extends IModule> {
 						Bukkit.getServer().getMessenger().registerIncomingPluginChannel(
 								AquilonThings.instance,
 								AquilonThings.CHANNEL_PREFIX + ':' + channel.value(),
-								data()
+								(chan, p, payload) -> {
+									if (!chan.equals(AquilonThings.CHANNEL_PREFIX+':'+channel.value())) {
+										getLogger().mWarning("Unexpected plugin message channel: registered='"+
+												channel.value()+"', actual='"+chan+"'");
+										return;
+									}
+									data().onPluginMessageReceived(channel.value(), p,
+											Arrays.copyOfRange(payload, 1, payload.length));
+								}
 						)
 				);
 			} catch (IllegalArgumentException e) {

@@ -87,7 +87,7 @@ public class AQLCharacters implements IModule {
 
 	@Override
 	public void onPluginMessageReceived(String channel, Player p, byte[] bytes) {
-		if (channel.equals(AquilonThings.CHANNEL_PREFIX+':'+AquilonThings.CHANNEL_READY)) { // Player joined server
+		if (channel.equals(AquilonThings.CHANNEL_READY)) { // Player joined server
             charDB.updatePlayer(p);
 		    // Step one: send info about new player to everyone
 			// Step two: send info about connected players to new player
@@ -490,9 +490,9 @@ public class AQLCharacters implements IModule {
         String uuid = player.getUniqueId().toString().replaceAll("-","");
         byte[] skinData = (uuid+":"+skin.getFileName()).getBytes();
         for (Player p : Bukkit.getOnlinePlayers()) {
-            p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_SKIN, skinData);
+			AquilonThings.sendPluginMessage(p, CHANNEL_SKIN, skinData);
         }
-        AquilonThings.instance.sendServerMessage(CHANNEL_SKIN, skinData);
+        AquilonThings.sendServerMessage(CHANNEL_SKIN, skinData);
         return true;
     }
 
@@ -506,7 +506,7 @@ public class AQLCharacters implements IModule {
     }
 
     public void sendScale(Player target, String pUUID, float scale) {
-		target.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_SCALE,
+		AquilonThings.sendPluginMessage(target, CHANNEL_SCALE,
 				(pUUID+":"+scale).getBytes());
 	}
 
@@ -525,41 +525,41 @@ public class AQLCharacters implements IModule {
         byte[] skinData = (uuid+":"+(skin!=null ? skin : "skin_mojang")).getBytes();
         byte[] skillsData = (uuid+";"+(skills!=null ? PlayerContext.getSkillsString(skills) : "")).getBytes();
 		for (Player p : Bukkit.getOnlinePlayers()) {
-            p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_NAME, nameData);
-            p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_RACE, raceData);
-			p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_SKIN, skinData);
-			p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_SKILLS, skillsData);
+			AquilonThings.sendPluginMessage(p, CHANNEL_NAME, nameData);
+			AquilonThings.sendPluginMessage(p, CHANNEL_RACE, raceData);
+			AquilonThings.sendPluginMessage(p, CHANNEL_SKIN, skinData);
+			AquilonThings.sendPluginMessage(p, CHANNEL_SKILLS, skillsData);
         }
-        AquilonThings.instance.sendServerMessage(CHANNEL_NAME, nameData);
-        AquilonThings.instance.sendServerMessage(CHANNEL_RACE, raceData);
-		AquilonThings.instance.sendServerMessage(CHANNEL_SKIN, skinData);
-		AquilonThings.instance.sendServerMessage(CHANNEL_SKILLS, skillsData);
+		AquilonThings.sendServerMessage(CHANNEL_NAME, nameData);
+		AquilonThings.sendServerMessage(CHANNEL_RACE, raceData);
+		AquilonThings.sendServerMessage(CHANNEL_SKIN, skinData);
+		AquilonThings.sendServerMessage(CHANNEL_SKILLS, skillsData);
     }
 
 	public void sendPlayerPackets(Player target, PlayerContext context) {
-		target.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_NAME, context.getNameData());
+		AquilonThings.sendPluginMessage(target, CHANNEL_NAME, context.getNameData());
 
 		byte[] raceData = context.getRaceData("humain"); // TODO: load default from config
-		target.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_RACE, raceData);
+		AquilonThings.sendPluginMessage(target, CHANNEL_RACE, raceData);
 
 		byte[] skinData = context.getSkinData("skin_mojang");
-		target.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_SKIN, skinData);
+		AquilonThings.sendPluginMessage(target, CHANNEL_SKIN, skinData);
 
 		byte[] skillsData = context.getSkillsData();
-		target.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_SKILLS, skillsData);
+		AquilonThings.sendPluginMessage(target, CHANNEL_SKILLS, skillsData);
 	}
 
 	public void sendServerPacket(PlayerContext context) {
-		AquilonThings.instance.sendServerMessage(CHANNEL_NAME, context.getNameData());
+		AquilonThings.sendServerMessage(CHANNEL_NAME, context.getNameData());
 
 		byte[] raceData = context.getRaceData("humain"); // TODO: load default from config
-		AquilonThings.instance.sendServerMessage(CHANNEL_RACE, raceData);
+		AquilonThings.sendServerMessage(CHANNEL_RACE, raceData);
 
 		byte[] skinData = context.getSkinData("skin_mojang");
-		AquilonThings.instance.sendServerMessage(CHANNEL_SKIN, skinData);
+		AquilonThings.sendServerMessage(CHANNEL_SKIN, skinData);
 
 		byte[] skillsData = context.getSkillsData();
-		AquilonThings.instance.sendServerMessage(CHANNEL_SKILLS, skillsData);
+		AquilonThings.sendServerMessage(CHANNEL_SKILLS, skillsData);
 	}
 
 	public CharacterDatabase getCharacterDB() {

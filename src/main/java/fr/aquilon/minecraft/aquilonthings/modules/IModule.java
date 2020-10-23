@@ -8,7 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import java.util.List;
 
@@ -16,7 +15,7 @@ import java.util.List;
  * AquilonThings module interface
  * @author BilliAlpha <billi.pamege.300@gmail.com>
  */
-public interface IModule extends Listener, PluginMessageListener, CommandExecutor, TabCompleter {
+public interface IModule extends Listener, CommandExecutor, TabCompleter {
     /**
      * Module initialization method
      * @return <code>true</code> on success, <code>false</code> otherwise
@@ -39,6 +38,5 @@ public interface IModule extends Listener, PluginMessageListener, CommandExecuto
         return null;
     }
 
-    @Override
-    default void onPluginMessageReceived(String channel, Player player, byte[] message) {}
+    default void onPluginMessageReceived(String channel, Player player, byte[] data) {}
 }

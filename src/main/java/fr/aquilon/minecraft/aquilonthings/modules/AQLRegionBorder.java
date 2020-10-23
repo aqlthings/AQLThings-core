@@ -144,7 +144,7 @@ public class AQLRegionBorder implements IModule {
 			}
 		}
 
-		p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_REGION_BORDER, buf.array());
+		AquilonThings.sendPluginMessage(p, CHANNEL_REGION_BORDER, buf.array());
 	}
 
 	public static class Point2D {

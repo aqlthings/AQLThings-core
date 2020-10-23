@@ -54,23 +54,23 @@ public class AQLEmotes implements IModule {
 
 	@Override
 	public void onPluginMessageReceived(String channel, Player p, byte[] cmdString) {
-		if(channel.equals(AquilonThings.CHANNEL_PREFIX+':'+AquilonThings.CHANNEL_READY)) {
+		if (channel.equals(AquilonThings.CHANNEL_READY)) {
 			// Donner les emotes actives des autres joueurs à celui venant de se connecter.
 			for (Player joueur : Bukkit.getServer().getOnlinePlayers()) {
-				String pUUID = joueur.getUniqueId().toString().replaceAll("-","");
-				if (activeEmotes.containsKey(pUUID)){
-					p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_EMOTE, (pUUID+":"+getEmote(joueur)).getBytes());
+				String pUUID = joueur.getUniqueId().toString().replaceAll("-", "");
+				if (activeEmotes.containsKey(pUUID)) {
+					AquilonThings.sendPluginMessage(p, CHANNEL_EMOTE, (pUUID + ":" + getEmote(joueur)).getBytes());
 				}
 			}
 		}
 
-		if(channel.equals(AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_BULLE)) {
+		if(channel.equals(CHANNEL_BULLE)) {
 			String pUUID = p.getUniqueId().toString().replaceAll("-","");
 			boolean writting = new String(cmdString).split(":")[1].equals("1"); // TODO: simplify packet (only send 1/0)
 			byte[] bytes = (pUUID+":"+(writting?"1":"0")).getBytes();
 			for (Player player : Bukkit.getServer().getOnlinePlayers()) {
 				if (player==p) continue;
-				player.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_BULLE, bytes);
+				AquilonThings.sendPluginMessage(player, CHANNEL_BULLE, bytes);
 			}
 		}
 	}
@@ -197,8 +197,8 @@ public class AQLEmotes implements IModule {
 
 	public void sendUpdatePacket(Player p) {
 		String pUUID = p.getUniqueId().toString().replaceAll("-","");
-		for (Player joueur : Bukkit.getOnlinePlayers()) {
-			joueur.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_EMOTE, (pUUID+":"+getEmote(p)).getBytes());
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			AquilonThings.sendPluginMessage(player, CHANNEL_EMOTE, (pUUID+":"+getEmote(p)).getBytes());
 		}
 	}
 	
