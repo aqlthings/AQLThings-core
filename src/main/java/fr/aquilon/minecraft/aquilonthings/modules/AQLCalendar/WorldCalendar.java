@@ -277,12 +277,12 @@ public class WorldCalendar implements JSONExportable {
     public String getUpdatePacketData() {
         // Format:
         // $ <world_name>:<calendar_type>:[y/Y]<year>:[s/S]<season>:[m/M]<month>:[d/D]<day>
-        return worldName + ':' +
-                type.getName() + ':' +
-                (isFixedYear() ? 'Y'+fixedYear : 'y'+startYear) + ':' +
-                (isFixedSeason() ? 'S'+fixedSeason.getIndex() : 's'+(startSeason != null ? startSeason.getIndex() : 0)) +':'+
-                (isFixedMonth() ? 'M'+fixedMonth.getIndex() : 'm'+(startMonth != null ? startMonth.getIndex() : 0)) + ':' +
-                (isFixedDay() ? 'D'+fixedDay : 'd'+startDay);
+        return worldName + ":" +
+                type.getName() + ":" +
+                (isFixedYear() ? "Y"+fixedYear : "y"+startYear) + ":" +
+                (isFixedSeason() ? "S"+fixedSeason.getIndex() : "s"+(startSeason != null ? startSeason.getIndex() : 0)) +":"+
+                (isFixedMonth() ? "M"+fixedMonth.getIndex() : "m"+(startMonth != null ? startMonth.getIndex() : 0)) + ":" +
+                (isFixedDay() ? "D"+fixedDay : "d"+startDay);
     }
 
     // ---- Export methods ----

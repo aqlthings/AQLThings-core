@@ -61,14 +61,14 @@ public class CalendarType {
         //       {season} = <id>/<name>/<dayTimeRatio>
         //       {months} = <count>:{month}|*
         //        {month} = <id>/<name>/<days>
-        return name + ':' +
-                seasons.size() + ':' +
-                seasons.stream().map(s -> s.getId()+'/'+s.getName()+'/'+s.getDayLengthRatio())
-                        .collect(Collectors.joining("|")) + ':' +
-                months.size() + ':' +
-                months.stream().map(m -> m.getId()+'/'+m.getName()+'/'+m.getDays())
-                        .collect(Collectors.joining("|")) + ':' +
-                getTotalDayLength() + ':' +
+        return name + ":" +
+                seasons.size() + ":" +
+                seasons.stream().map(s -> s.getId()+"/"+s.getName()+"/"+s.getDayLengthRatio())
+                        .collect(Collectors.joining("|")) + ":" +
+                months.size() + ":" +
+                months.stream().map(m -> m.getId()+"/"+m.getName()+"/"+m.getDays())
+                        .collect(Collectors.joining("|")) + ":" +
+                getTotalDayLength() + ":" +
                 seasonDaysOffset;
     }
 }

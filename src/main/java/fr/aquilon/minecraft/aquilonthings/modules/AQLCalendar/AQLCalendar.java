@@ -140,12 +140,14 @@ public class AQLCalendar implements IModule {
 					ChatColor.GRAY + (info.isFixedSeason() ? "" : " (auto)"));
 			sender.sendMessage(ChatColor.YELLOW + "  Month: " + ChatColor.WHITE + info.getMonth().getId() +
 					ChatColor.GRAY + (info.isFixedMonth() ? "" : " (auto)"));
+			sender.sendMessage(ChatColor.YELLOW + "  Day: " + ChatColor.WHITE + info.getDay() +
+					ChatColor.GRAY + (info.isFixedDay() ? "" : " (auto)"));
 			sender.sendMessage(ChatColor.YELLOW + "  Date: " + ChatColor.WHITE + info.getDate());
 			sender.sendMessage(ChatColor.YELLOW + "  Time: " + ChatColor.WHITE + info.getTime());
 			sender.sendMessage(ChatColor.YELLOW + "  Percentage: " + ChatColor.WHITE + info.getCurrentDayRatio()*100+"%");
 			sender.sendMessage(ChatColor.YELLOW + "  Day ticks: " + ChatColor.WHITE + info.getCurrentDayTicks() +
 					ChatColor.YELLOW + "/" + ChatColor.WHITE + info.getTotalDayLength());
-			sender.sendMessage(ChatColor.YELLOW + "  Total ticks: " + ChatColor.GRAY + info.getWorldTime());
+			sender.sendMessage(ChatColor.YELLOW + "  Total ticks: " + ChatColor.GRAY + info.getWorld().getFullTime());
 		} else {
 			sender.sendMessage(ChatColor.GRAY+""+ChatColor.ITALIC+"  No calendar");
 		}
