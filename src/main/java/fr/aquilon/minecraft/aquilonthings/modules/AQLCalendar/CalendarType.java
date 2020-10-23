@@ -9,18 +9,18 @@ import java.util.stream.Collectors;
  */
 public class CalendarType {
     private final String name;
-    private final CalendarSeasons seasons;
-    private final CalendarMonths months;
+    private final CalendarSet<Season> seasons;
+    private final CalendarSet<Month> months;
     private long dayLength;
-    private int daysPerMonth;
     private int seasonDaysOffset;
 
-    public CalendarType(String name, CalendarSeasons seasons, CalendarMonths months, long dayLength, int daysPerMonth, int seasonDaysOffset) {
+    public CalendarType(String name,
+                        CalendarSet<Season> seasons, CalendarSet<Month> months,
+                        long dayLength, int seasonDaysOffset) {
         this.name = name;
         this.seasons = seasons;
         this.months = months;
         this.dayLength = dayLength;
-        this.daysPerMonth = daysPerMonth;
         this.seasonDaysOffset = seasonDaysOffset;
     }
 
@@ -30,11 +30,11 @@ public class CalendarType {
         return name;
     }
 
-    public CalendarSeasons getSeasons() {
+    public CalendarSet<Season> getSeasons() {
         return seasons;
     }
 
-    public CalendarMonths getMonths() {
+    public CalendarSet<Month> getMonths() {
         return months;
     }
 
@@ -44,14 +44,6 @@ public class CalendarType {
 
     public void setTotalDayLength(long dayLength) {
         this.dayLength = dayLength;
-    }
-
-    public int getDaysPerMonth() {
-        return daysPerMonth;
-    }
-
-    public void setDaysPerMonth(int daysPerMonth) {
-        this.daysPerMonth = daysPerMonth;
     }
 
     public int getSeasonDaysOffset() {
@@ -74,7 +66,7 @@ public class CalendarType {
                 seasons.stream().map(s -> s.getId()+'/'+s.getName()+'/'+s.getDayLengthRatio())
                         .collect(Collectors.joining("|")) + ':' +
                 months.size() + ':' +
-                months.stream().map(m -> m.getId()+'/'+m.getName()+'/'+getDaysPerMonth())
+                months.stream().map(m -> m.getId()+'/'+m.getName()+'/'+m.getDays())
                         .collect(Collectors.joining("|")) + ':' +
                 getTotalDayLength() + ':' +
                 seasonDaysOffset;

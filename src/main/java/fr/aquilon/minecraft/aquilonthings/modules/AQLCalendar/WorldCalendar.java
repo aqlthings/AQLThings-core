@@ -16,12 +16,12 @@ public class WorldCalendar implements JSONExportable {
     private final String worldName;
     private final CalendarType type;
     private int startYear;
-    private CalendarSeasons.Season startSeason;
-    private CalendarMonths.Month startMonth;
+    private Season startSeason;
+    private Month startMonth;
     private int startDay;
     private Integer fixedYear;
-    private CalendarSeasons.Season fixedSeason;
-    private CalendarMonths.Month fixedMonth;
+    private Season fixedSeason;
+    private Month fixedMonth;
     private int fixedDay;
 
     public WorldCalendar(String worldName, CalendarType type) {
@@ -56,19 +56,19 @@ public class WorldCalendar implements JSONExportable {
         return startYear;
     }
 
-    public CalendarSeasons.Season getStartSeason() {
+    public Season getStartSeason() {
         return startSeason;
     }
 
-    public int getStartSeasonId() {
+    public int getStartSeasonIndex() {
         return startSeason != null ? startSeason.getIndex() : 0;
     }
 
-    public CalendarMonths.Month getStartMonth() {
+    public Month getStartMonth() {
         return startMonth;
     }
 
-    public int getStartMonthId() {
+    public int getStartMonthIndex() {
         return startMonth != null ? startMonth.getIndex() : 0;
     }
 
@@ -88,23 +88,31 @@ public class WorldCalendar implements JSONExportable {
         this.fixedYear = year;
     }
 
+    public void setAutoYear() {
+        this.fixedYear = null;
+    }
+
     // Season
 
     public boolean isFixedSeason() {
         return fixedSeason != null;
     }
 
-    public CalendarSeasons.Season getSeason() {
+    public Season getSeason() {
         if (isFixedSeason()) return fixedSeason;
         int nSeason = type.getSeasons().size();
         int offsetDay = (getCurrentYearDay() + type.getSeasonDaysOffset()) % getYearLength();
-        int iSeason = (offsetDay / getSeasonLength()) + getStartSeasonId();
+        int iSeason = (offsetDay / getSeasonLength()) + getStartSeasonIndex();
         return type.getSeasons().get(iSeason % nSeason);
     }
 
-    public void setFixedSeason(CalendarSeasons.Season season) {
+    public void setFixedSeason(Season season) {
         if (!type.getName().equals(season.getType())) throw new IllegalArgumentException("Mismatched calendar types");
         this.fixedSeason = Objects.requireNonNull(season);
+    }
+
+    public void setAutoSeason() {
+        this.fixedSeason = null;
     }
 
     public void nextSeason() {
@@ -123,16 +131,21 @@ public class WorldCalendar implements JSONExportable {
         return fixedMonth != null;
     }
 
-    public CalendarMonths.Month getMonth() {
+    public Month getMonth() {
         if (isFixedMonth()) return fixedMonth;
+        Month m = Month.getDayInMonth(type.getMonths(), getCurrentYearDay()).month;
         int nMonth = type.getMonths().size();
-        int iMonth = (getCurrentYearDay() / type.getDaysPerMonth()) + getStartMonthId();
+        int iMonth = m.getIndex() + getStartMonthIndex();
         return type.getMonths().get(iMonth % nMonth);
     }
 
-    public void setFixedMonth(CalendarMonths.Month month) {
+    public void setFixedMonth(Month month) {
         if (!type.getName().equals(month.getType())) throw new IllegalArgumentException("Mismatched calendar types");
         this.fixedMonth = Objects.requireNonNull(month);
+    }
+
+    public void setAutoMonth() {
+        this.fixedMonth = null;
     }
 
     // Day
@@ -146,7 +159,8 @@ public class WorldCalendar implements JSONExportable {
      */
     public int getDay() {
         if (isFixedDay()) return fixedDay;
-        return (startDay + getCurrentYearDay()) % type.getDaysPerMonth();
+        Month.DayInMonth dim = Month.getDayInMonth(type.getMonths(), getCurrentYearDay());
+        return (startDay + dim.day) % dim.month.getDays();
     }
 
     /**
@@ -154,9 +168,13 @@ public class WorldCalendar implements JSONExportable {
      */
     public void setFixedDay(int day) {
         if (day < 0) throw new IllegalArgumentException("Days are positive only");
-        if (day >= type.getDaysPerMonth())
-            throw new IllegalArgumentException("Maximum "+type.getDaysPerMonth()+" days per month");
+        if (day >= getMonth().getDays())
+            throw new IllegalArgumentException("Maximum "+getMonth().getDays()+" days per month");
         this.fixedDay = day;
+    }
+
+    public void setAutoDay() {
+        this.fixedDay = -1;
     }
 
     // ---- Utils ----
@@ -165,7 +183,7 @@ public class WorldCalendar implements JSONExportable {
      * @return The number of days in a year
      */
     public int getYearLength() {
-        return type.getDaysPerMonth() * type.getMonths().size();
+        return type.getMonths().stream().mapToInt(Month::getDays).sum();
     }
 
     /**

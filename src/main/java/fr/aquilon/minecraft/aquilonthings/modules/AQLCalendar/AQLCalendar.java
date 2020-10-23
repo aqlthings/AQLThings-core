@@ -81,11 +81,6 @@ public class AQLCalendar implements IModule {
 	public boolean onCommand(CommandSender sender, Command cmd, String alias, String[] args) {
 		if (!cmd.getName().equalsIgnoreCase(COMMAND)) return false;
 
-		if (!sender.hasPermission(PERM_CALENDAR_EDIT)) {
-			sender.sendMessage(ChatColor.RED + "Seuls les staffeux sont maîtres du temps.");
-			return true;
-		}
-
 		String USAGE = ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/"+COMMAND+" (get | set) [args...]";
 		if (args.length == 0) {
 			sender.sendMessage(USAGE);
@@ -93,18 +88,29 @@ public class AQLCalendar implements IModule {
 		}
 
 		if (args[0].equalsIgnoreCase("get")) return runGetWorldCalendar(sender, args);
-		else if (args[0].equalsIgnoreCase("set")) return runSetWorldFixedSetting(sender, args);
-		else sender.sendMessage(USAGE);
-		return false;
+		else if (args[0].equalsIgnoreCase("set")) {
+			USAGE = ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/"+COMMAND+" set (world | type) [args...]";
+			if (args.length < 2) {
+				sender.sendMessage(USAGE);
+				return true;
+			}
+			if (args[1].equals("world")) return runSetWorldFixedSetting(sender, args);
+			else if (args[1].equals("type")) return runSetTypeSetting(sender, args);
+			else sender.sendMessage(USAGE);
+		} else sender.sendMessage(USAGE);
+		return true;
 	}
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
 		if (!cmd.getName().equalsIgnoreCase(COMMAND)) return null;
-		if (!sender.hasPermission(PERM_CALENDAR_EDIT)) return null;
+		if (sender instanceof Player)
+			if (!sender.hasPermission(PERM_CALENDAR_EDIT.concat(((Player) sender).getWorld().getName()))) return null;
 		if (args.length == 1) return Stream.of("get", "set")
 				.filter(s -> args[0].length() < 1 || s.startsWith(args[0])).collect(Collectors.toList());
 		if (args.length == 2 && args[0].equals("get")) return Bukkit.getWorlds().stream().map(World::getName)
+				.filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
+		if (args.length == 2 && args[0].equals("set")) return Stream.of("world", "type")
 				.filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
 		return null;
 	}
@@ -132,7 +138,7 @@ public class AQLCalendar implements IModule {
 					ChatColor.GRAY + (info.isFixedYear() ? "" : " (auto)"));
 			sender.sendMessage(ChatColor.YELLOW + "  Season: " + ChatColor.WHITE + info.getSeason().getId() +
 					ChatColor.GRAY + (info.isFixedSeason() ? "" : " (auto)"));
-			sender.sendMessage(ChatColor.YELLOW + "  Month: " + ChatColor.WHITE + info.getMonth().getName() +
+			sender.sendMessage(ChatColor.YELLOW + "  Month: " + ChatColor.WHITE + info.getMonth().getId() +
 					ChatColor.GRAY + (info.isFixedMonth() ? "" : " (auto)"));
 			sender.sendMessage(ChatColor.YELLOW + "  Date: " + ChatColor.WHITE + info.getDate());
 			sender.sendMessage(ChatColor.YELLOW + "  Time: " + ChatColor.WHITE + info.getTime());
@@ -146,14 +152,27 @@ public class AQLCalendar implements IModule {
 		return true;
 	}
 
-	private boolean runSetWorldFixedSetting(CommandSender sender, String[] args) {
+	private boolean runSetTypeSetting(CommandSender sender, String[] args) {
 		String USAGE = ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/"+COMMAND+
-				" set (month | season | year) (auto | <value>) [<world>]";
-		if (args.length < 3) {
+				" set type <type> <key> <value>";
+		if (args.length < 4) {
 			sender.sendMessage(USAGE);
 			return true;
 		}
-		World world = args.length > 3 ? Bukkit.getWorld(args[3]) : null;
+		// TODO
+		sender.sendMessage("Not implemented yet !");
+		return true;
+	}
+
+	private boolean runSetWorldFixedSetting(CommandSender sender, String[] args) {
+		String USAGE = ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/"+COMMAND+
+				//" set world ((type <type>) | ((month | season | year) (auto | <value>))) [<world>]";
+				" set world (day | month | season | year) (auto | <value>) [<world>]";
+		if (args.length < 4) {
+			sender.sendMessage(USAGE);
+			return true;
+		}
+		World world = args.length > 4 ? Bukkit.getWorld(args[4]) : null;
 		if (world == null && sender instanceof Player) {
 			world = ((Player) sender).getWorld();
 		}
@@ -166,9 +185,53 @@ public class AQLCalendar implements IModule {
 			return true;
 		}
 		WorldCalendar info = getWorldCalendar(world.getName());
-		// TODO: update month/season/year
+		String field = args[2];
+		String value = args[3];
+		if (field.equals("day")) {
+			if (value.equals("auto")) info.setAutoDay();
+			else try {
+				info.setFixedDay(Integer.parseUnsignedInt(value));
+			} catch (Exception err) {
+				sender.sendMessage(ChatColor.YELLOW+"Invalid day, expected a number");
+				return true;
+			}
+		} else if (field.equals("month")) {
+			if (value.equals("auto")) info.setAutoMonth();
+			else {
+				Month month = info.getType().getMonths().get(value);
+				if (month == null) {
+					sender.sendMessage(ChatColor.YELLOW + "Invalid month");
+					return true;
+				}
+				info.setFixedMonth(month);
+			}
+		} else if (field.equals("season")) {
+			if (value.equals("auto")) info.setAutoSeason();
+			else if (value.equals("next")) info.nextSeason();
+			else if (value.equals("previous")) info.previousSeason();
+			else {
+				Season season = info.getType().getSeasons().get(value);
+				if (season == null) {
+					sender.sendMessage(ChatColor.YELLOW + "Invalid season");
+					return true;
+				}
+				info.setFixedSeason(season);
+			}
+		} else if (field.equals("year")) {
+			if (value.equals("auto")) info.setAutoYear();
+			else try {
+				info.setFixedYear(Integer.parseUnsignedInt(value));
+			} catch (Exception err) {
+				sender.sendMessage(ChatColor.YELLOW+"Invalid year, expected a number");
+				return true;
+			}
+		} else {
+			sender.sendMessage(ChatColor.YELLOW+"Unknown field");
+			return true;
+		}
 		if (updateWorldCalendar(info)) {
 			sender.sendMessage(ChatColor.YELLOW+"Saved calendar for "+ChatColor.WHITE+world.getName());
+			sendUpdatePacketWorld(world);
 		} else {
 			sender.sendMessage(ChatColor.GOLD+"Error: "+ChatColor.YELLOW+"Couldn't save calendar !");
 		}
@@ -227,7 +290,6 @@ public class AQLCalendar implements IModule {
 		// TODO
 		return new CalendarBuilder(type)
 				.dayLength(144000)
-				.daysPerMonth(30)
 				.seasonDaysOffset(80)
 				.addSeason("winter", "Hiver", 0.5f)
 				.addSeason("spring", "Spring", 0.58f)
@@ -258,7 +320,7 @@ public class AQLCalendar implements IModule {
     /**
      * Send a calendar update packet for this world
 	 * @param w The world whose info should be sent
-	 * @param target The update packet recipient
+	 * @param target The update packet recipient (A player, or <code>null</code> for the server)
      */
     private void sendUpdatePacket(World w, PluginMessageRecipient target) {
     	WorldCalendar info = getWorldCalendar(Objects.requireNonNull(w).getName());
@@ -273,9 +335,18 @@ public class AQLCalendar implements IModule {
 	 * Send an update packet to the player and to the server for the player current world
 	 * @param p A player
 	 */
-	private void sendUpdatePacketWorld(Player p) {
+	private void sendUpdatePacketPlayer(Player p) {
 		sendUpdatePacket(p.getWorld(), null);
 		sendUpdatePacket(p.getWorld(), p);
+	}
+
+	/**
+	 * Send an update packet to the server and all players in a world
+	 * @param w A world
+	 */
+	private void sendUpdatePacketWorld(World w) {
+		sendUpdatePacket(w, null);
+		w.getPlayers().forEach(p -> sendUpdatePacket(w, p));
 	}
 
 	/**
@@ -298,12 +369,12 @@ public class AQLCalendar implements IModule {
 	@Override
 	public void onPluginMessageReceived(String channel, Player player, byte[] data) {
     	if (channel.equals(AquilonThings.CHANNEL_READY))
-			sendUpdatePacketWorld(player);
+			sendUpdatePacketPlayer(player);
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerChangeWorld(PlayerChangedWorldEvent evt) {
-		sendUpdatePacketWorld(evt.getPlayer());
+		sendUpdatePacketPlayer(evt.getPlayer());
 	}
 
 	@EventHandler(ignoreCancelled = true)
