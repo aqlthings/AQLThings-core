@@ -32,12 +32,12 @@ public class BabelHttpAPI extends APIModule {
 
     @Override
     public void onReady() {
-        registerRoute("getPlayersLanguage", NanoHTTPD.Method.GET, "/players", this::getPlayersLanguage);
-        registerRoute("getPlayerLanguage", NanoHTTPD.Method.GET, "/players/{uuid:player}", this::getPlayerLanguage);
+        registerRoute("getPlayerSelectedLanguages", NanoHTTPD.Method.GET, "/players", this::getPlayerSelectedLanguages);
+        registerRoute("getPlayerLanguages", NanoHTTPD.Method.GET, "/players/{uuid:player}", this::getPlayerLanguages);
         registerRoute("getLanguages", NanoHTTPD.Method.GET, "/languages", this::getLanguages);
     }
 
-    public JSONObject getPlayersLanguage(APIRequest r) {
+    public JSONObject getPlayerSelectedLanguages(APIRequest r) {
         JSONObject res = new JSONObject();
         for (Player p : Bukkit.getOnlinePlayers()) {
             BabelPlayer info = babel.getPlayerInfo(p);
@@ -51,7 +51,7 @@ public class BabelHttpAPI extends APIModule {
         return res;
     }
 
-    public JSONObject getPlayerLanguage(APIRequest r) throws APIError {
+    public JSONObject getPlayerLanguages(APIRequest r) throws APIError {
         JSONObject res = new JSONObject();
         OfflinePlayer p = r.getArg("player").getAsPlayer();
         BabelPlayer info = babel.getPlayerInfo(p);

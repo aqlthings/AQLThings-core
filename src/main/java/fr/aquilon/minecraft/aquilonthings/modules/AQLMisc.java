@@ -98,7 +98,7 @@ public class AQLMisc implements IModule {
 
 			if(playerBrouillard.containsKey(p.getUniqueId().toString())){
 				String density = String.valueOf(playerBrouillard.get(p.getUniqueId().toString()));
-				p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_BROUILLARD, density.getBytes());
+				AquilonThings.sendPluginMessage(p, CHANNEL_BROUILLARD, density.getBytes());
 			}
 		} else if(channel.equals(CHANNEL_PLAYERINFO) && cmdString.length > 0) {
 		    String data = new String(cmdString).substring(1).split(":")[1];
@@ -173,7 +173,7 @@ public class AQLMisc implements IModule {
 			else
 				playerBrouillard.put(player.getUniqueId().toString(), density);
 
-			player.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_BROUILLARD, args[1].getBytes());
+			AquilonThings.sendPluginMessage(player, CHANNEL_BROUILLARD, args[1].getBytes());
 			sender.sendMessage(ChatColor.YELLOW + "Le brouillard est défini avec succès sur le joueur "+
 					Utils.decoratePlayerName(player) + ChatColor.YELLOW +  " (" + density + ")");
 			return true;
@@ -329,7 +329,7 @@ public class AQLMisc implements IModule {
 	public boolean sendPlayerInfoPacket(CommandSender sender, String nameCheck) {
 		Player player = Bukkit.getPlayer(nameCheck);
 		if (player != null) {
-			player.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_PLAYERINFO, sender.getName().getBytes());
+			AquilonThings.sendPluginMessage(player, CHANNEL_PLAYERINFO, sender.getName().getBytes());
 		} else {
 			sender.sendMessage(ChatColor.RED + "Erreur dans le pseudo du joueur...");
 		}

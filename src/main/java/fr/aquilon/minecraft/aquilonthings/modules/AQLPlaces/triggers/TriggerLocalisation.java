@@ -34,7 +34,7 @@ public class TriggerLocalisation extends Trigger {
 		if(!goingIn) return false;
 		try {
 			String payload = locName + ":" + locType + ":" + locDuration + ":" + locDesc;
-			p.sendPluginMessage(AquilonThings.instance, AquilonThings.CHANNEL_PREFIX+':'+CHANNEL_PLACE, payload.getBytes());
+			AquilonThings.sendPluginMessage(p, CHANNEL_PLACE, payload.getBytes());
 		} catch(Exception e){
 			throw new TriggerFailedException(this,e);
 		}

@@ -1,6 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings;
 
 import fr.aquilon.minecraft.aquilonthings.modules.AQLBlessures.AQLBlessures;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLCalendar.AQLCalendar;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.AQLCharacters;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLChat.AQLChat;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLEmotes.AQLEmotes;
@@ -11,7 +12,6 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLMisc;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLNobles;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.AQLPlaces;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLRegionBorder;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLSeason.AQLSeason;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLStaff;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVanish;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
@@ -22,6 +22,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageRecipient;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -66,7 +68,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 			AQLMisc.class,
 			AQLStaff.class,
 			AQLCharacters.class,
-			AQLSeason.class,
+			AQLCalendar.class,
 			AQLLooting.class,
             AQLRegionBorder.class
 	};
@@ -74,7 +76,6 @@ public class AquilonThings extends JavaPlugin implements Listener {
 	public static AquilonThings instance;
 
 	private Map<String, Module<?>> moduleList;
-	private Method serverMessageDispatcher;
 
 	public AquilonThings(){
 		AquilonThings.instance = this;
@@ -122,7 +123,6 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		initDatabase();
 		registerModules();
 		registerModulesIO();
-		setupServerDispatcher();
 
 		// Enable all modules
 		Iterator<Module<?>> it = moduleList.values().iterator();
@@ -220,26 +220,6 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		}
 	}
 
-	public void setupServerDispatcher() {
-		try {
-			Class c = getClassLoader().loadClass("net.minecraft.aquilon.util.Network");
-			serverMessageDispatcher = c.getMethod("onPluginMessageReceived", String.class, byte[].class);
-		} catch (ClassNotFoundException | NoSuchMethodException e) {
-			LOGGER.warning(LOG_PREFIX+" Unable to setup Plugin-Server communication");
-			LOGGER.log(Level.FINE, LOG_PREFIX+" Reflection error:",e);
-		}
-	}
-
-	public void sendServerMessage(String channel, byte[] payload) {
-		if (serverMessageDispatcher==null) return;
-		try {
-			serverMessageDispatcher.invoke(null, channel, payload);
-		} catch (InvocationTargetException | IllegalAccessException e) {
-			LOGGER.warning(LOG_PREFIX+" Unable to send server message");
-			LOGGER.log(Level.FINE, LOG_PREFIX+" Reflection error:",e);
-		}
-	}
-
 	public DatabaseConnector getNewDatabaseConnector() {
 		return new DatabaseConnector(
 				getConfig().getString("database.address"),
@@ -334,5 +314,48 @@ public class AquilonThings extends JavaPlugin implements Listener {
 			return true;
 		}
 		return true;
+	}
+
+	private static Method getServerMessageDispatcher() {
+		try {
+			Class c = AquilonThings.class.getClassLoader().loadClass("fr.aquilon.minecraft.Network");
+			return c.getMethod("onPluginMessageReceived", String.class, byte[].class);
+		} catch (ClassNotFoundException | NoSuchMethodException e) {
+			LOGGER.warning(LOG_PREFIX+" Unable to setup Plugin-Server communication");
+			LOGGER.log(Level.FINE, LOG_PREFIX+" Reflection error:",e);
+			return null;
+		}
+	}
+
+	/**
+	 * Dispatch a plugin message to the target
+	 * @param target A player to send the message to, or <code>null</code> to send it to the server
+	 * @param channel The channel name (without the prefix, it will be added automatically)
+	 * @param data The data to send
+	 */
+	public static void sendPluginMessage(PluginMessageRecipient target, String channel, byte[] data) {
+		String chan = AquilonThings.CHANNEL_PREFIX+':'+ Objects.requireNonNull(channel);
+		byte[] payload = new byte[data.length+1];
+		payload[0] = 0;
+		System.arraycopy(data, 0, payload, 1, data.length);
+		if (target == null) {
+			Method serverMessageDispatcher = getServerMessageDispatcher();
+			if (serverMessageDispatcher==null) return;
+			try {
+				serverMessageDispatcher.invoke(null, chan, payload);
+			} catch (InvocationTargetException | IllegalAccessException e) {
+				LOGGER.warning(LOG_PREFIX+" Unable to send server message");
+				LOGGER.log(Level.FINE, LOG_PREFIX+" Reflection error:",e);
+			}
+		} else {
+			target.sendPluginMessage(AquilonThings.instance, chan, payload);
+		}
+	}
+
+	/**
+	 * Alias for {@link #sendPluginMessage(PluginMessageRecipient, String, byte[])} with <code>target = null</code>
+	 */
+	public static void sendServerMessage(String channel, byte[] data) {
+		sendPluginMessage(null, channel, data);
 	}
 }
