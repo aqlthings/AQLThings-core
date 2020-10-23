@@ -5,6 +5,8 @@ import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
+import fr.aquilon.minecraft.aquilonthings.annotation.InPacket;
+import fr.aquilon.minecraft.aquilonthings.annotation.OutPacket;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.InvalidArgumentEx;
@@ -39,13 +41,17 @@ import java.util.UUID;
         cmds = {
                 @Cmd(value = AQLChat.COMMAND_CH, desc = "Gestion des cannaux de chat"),
                 @Cmd(value = AQLChat.COMMAND_QMSG, desc = "Envoi de messages formatés")
-        }
+        },
+        inPackets = @InPacket(AQLChat.CHANNEL_CHAT_ICON),
+        outPackets = @OutPacket(AQLChat.CHANNEL_CHAT_ICON)
 )
 public class AQLChat implements IModule {
     public static final ModuleLogger LOGGER = ModuleLogger.get();
 
     public static final String COMMAND_CH = "ch";
     public static final String COMMAND_QMSG = "qmsg";
+
+    public static final String CHANNEL_CHAT_ICON = "chat_icon";
 
     public static final String PERM_CHAN_BASE = AquilonThings.PERM_ROOT + ".chat.channel.";
     public static final String PERM_CHAT_FORMATED = AquilonThings.PERM_ROOT + ".chat.formated";
@@ -531,5 +537,15 @@ public class AQLChat implements IModule {
 
     public ChatChannel getChannel(String channel) {
         return channelList.get(channel);
+    }
+
+    @Override
+    public void onPluginMessageReceived(String channel, Player p, byte[] data) {
+        if (!channel.equals(CHANNEL_CHAT_ICON)) return;
+        String pUUID = p.getUniqueId().toString().replaceAll("-","");
+        boolean chatOpen = data[0] == 1;
+        byte[] bytes = (pUUID+":"+(chatOpen?'1':'0')).getBytes();
+        Bukkit.getServer().getOnlinePlayers().stream().filter(player -> player != p)
+                .forEach(player -> AquilonThings.sendPluginMessage(player, CHANNEL_CHAT_ICON, bytes));
     }
 }
