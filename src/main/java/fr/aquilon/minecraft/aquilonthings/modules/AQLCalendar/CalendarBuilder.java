@@ -8,25 +8,19 @@ import java.util.Objects;
  */
 public class CalendarBuilder {
     private final String type;
-    private final CalendarSeasons seasons;
-    private final CalendarMonths months;
+    private final CalendarSet<Season> seasons;
+    private final CalendarSet<Month> months;
     private long dayLength;
-    private int daysPerMonth;
     private int seasonDaysOffset;
 
     public CalendarBuilder(String type) {
         this.type = Objects.requireNonNull(type);
-        this.seasons = new CalendarSeasons(type);
-        this.months = new CalendarMonths(type);
+        this.seasons = new CalendarSet<>(type);
+        this.months = new CalendarSet<>(type);
     }
 
     public CalendarBuilder dayLength(long dayLength) {
         this.dayLength = dayLength;
-        return this;
-    }
-
-    public CalendarBuilder daysPerMonth(int daysPerMonth) {
-        this.daysPerMonth = daysPerMonth;
         return this;
     }
 
@@ -38,12 +32,12 @@ public class CalendarBuilder {
     }
 
     public CalendarBuilder addSeason(String id, String name, float dayLengthRatio) {
-        seasons.add(new CalendarSeasons.Season(seasons, seasons.size(), id, name, dayLengthRatio));
+        seasons.add(new Season(seasons, seasons.size(), id, name, dayLengthRatio));
         return this;
     }
 
     public CalendarBuilder addMonth(String id, String name, int days) {
-        months.add(new CalendarMonths.Month(months, months.size(), id, name, days));
+        months.add(new Month(months, months.size(), id, name, days));
         return this;
     }
 
@@ -51,7 +45,6 @@ public class CalendarBuilder {
         if (seasons.size() < 1) throw new IllegalStateException("Missing seasons (at least one required)");
         if (months.size() < 1) throw new IllegalStateException("Missing months (at least one required)");
         if (dayLength <= 0) throw new IllegalStateException("Missing day length");
-        if (daysPerMonth <= 0) throw new IllegalStateException("Missing number of days per month");
-        return new CalendarType(type, seasons, months, dayLength, daysPerMonth, seasonDaysOffset);
+        return new CalendarType(type, seasons, months, dayLength, seasonDaysOffset);
     }
 }
