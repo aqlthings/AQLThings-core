@@ -4,6 +4,7 @@ import fi.iki.elonen.NanoHTTPD;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -102,4 +103,11 @@ public class RouteHandler<T> {
      * A converter that returns the specified text as UTF-8 plain text
      */
     public static final Function<String, NanoHTTPD.Response> TEXT = r -> RouteHandler.newTextResponse(NanoHTTPD.Response.Status.OK, r);
+
+    /**
+     * @return converter that stream the response with a custom content type
+     */
+    public static Function<InputStream, NanoHTTPD.Response> streaming(final String contentType) {
+         return is -> NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, contentType, is);
+    }
 }
