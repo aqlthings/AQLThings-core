@@ -192,7 +192,7 @@ public class AQLCalendar implements IModule {
 		if (field.equals("day")) {
 			if (value.equals("auto")) info.setAutoDay();
 			else try {
-				info.setFixedDay(Integer.parseUnsignedInt(value));
+				info.setFixedDay(Integer.parseUnsignedInt(value)-1);
 			} catch (Exception err) {
 				sender.sendMessage(ChatColor.YELLOW+"Invalid day, expected a number");
 				return true;
