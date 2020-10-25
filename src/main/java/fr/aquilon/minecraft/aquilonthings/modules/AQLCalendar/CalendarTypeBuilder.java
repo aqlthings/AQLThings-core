@@ -6,37 +6,41 @@ import java.util.Objects;
  * Helper to build a calendar type
  * @author BilliAlpha <billi.pamege.300@gmail.com>
  */
-public class CalendarBuilder {
+public class CalendarTypeBuilder {
     private final String type;
     private final CalendarSet<Season> seasons;
     private final CalendarSet<Month> months;
     private long dayLength;
     private int seasonDaysOffset;
 
-    public CalendarBuilder(String type) {
+    public CalendarTypeBuilder(String type) {
         this.type = Objects.requireNonNull(type);
         this.seasons = new CalendarSet<>(type);
         this.months = new CalendarSet<>(type);
     }
 
-    public CalendarBuilder dayLength(long dayLength) {
+    public String getType() {
+        return type;
+    }
+
+    public CalendarTypeBuilder dayLength(long dayLength) {
         this.dayLength = dayLength;
         return this;
     }
 
-    public CalendarBuilder seasonDaysOffset(int seasonDaysOffset) {
+    public CalendarTypeBuilder seasonDaysOffset(int seasonDaysOffset) {
         if (seasonDaysOffset < 0)
             throw new IllegalStateException("Invalid day offset for seasons, positive values only");
         this.seasonDaysOffset = seasonDaysOffset;
         return this;
     }
 
-    public CalendarBuilder addSeason(String id, String name, float dayLengthRatio) {
+    public CalendarTypeBuilder addSeason(String id, String name, float dayLengthRatio) {
         seasons.add(new Season(seasons, seasons.size(), id, name, dayLengthRatio));
         return this;
     }
 
-    public CalendarBuilder addMonth(String id, String name, int days) {
+    public CalendarTypeBuilder addMonth(String id, String name, int days) {
         months.add(new Month(months, months.size(), id, name, days));
         return this;
     }
