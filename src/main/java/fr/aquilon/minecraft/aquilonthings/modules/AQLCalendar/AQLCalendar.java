@@ -104,14 +104,39 @@ public class AQLCalendar implements IModule {
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
 		if (!cmd.getName().equalsIgnoreCase(COMMAND)) return null;
-		if (sender instanceof Player)
-			if (!sender.hasPermission(PERM_CALENDAR_EDIT.concat(((Player) sender).getWorld().getName()))) return null;
+		WorldCalendar cal = null;
+		if (sender instanceof Player) {
+			Player player = ((Player) sender);
+			if (!sender.hasPermission(PERM_CALENDAR_EDIT.concat(player.getWorld().getName()))) return null;
+			cal = getWorldCalendar(player.getWorld().getName());
+		}
+
 		if (args.length == 1) return Stream.of("get", "set")
 				.filter(s -> args[0].length() < 1 || s.startsWith(args[0])).collect(Collectors.toList());
 		if (args.length == 2 && args[0].equals("get")) return Bukkit.getWorlds().stream().map(World::getName)
 				.filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
 		if (args.length == 2 && args[0].equals("set")) return Stream.of("world", "type")
 				.filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
+		if (args.length == 3 && args[0].equals("set") && args[1].equals("world"))
+			return Stream.of("day", "month", "season", "year")
+				.filter(s -> args[2].length() < 1 || s.startsWith(args[2])).collect(Collectors.toList());
+		if (cal != null) {
+			if (args.length == 4 && args[0].equals("set") && args[1].equals("world") && args[2].equals("month")) {
+				List<String> res = cal.getType().getMonths().stream().map(Month::getId)
+						.filter(s -> args[3].length() < 1 || s.startsWith(args[3])).collect(Collectors.toList());
+				res.add("auto");
+				return res;
+			}
+			if (args.length == 4 && args[0].equals("set") && args[1].equals("world") && args[2].equals("season")) {
+				List<String> res = cal.getType().getSeasons().stream().map(Season::getId)
+						.filter(s -> args[3].length() < 1 || s.startsWith(args[3])).collect(Collectors.toList());
+				res.add("auto");
+				return res;
+			}
+		}
+		if (args.length == 5 && args[0].equals("set") && args[1].equals("world"))
+			return Bukkit.getWorlds().stream().map(World::getName)
+					.filter(s -> args[4].length() < 1 || s.startsWith(args[4])).collect(Collectors.toList());
 		return null;
 	}
 
