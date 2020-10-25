@@ -19,6 +19,10 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.messaging.PluginMessageRecipient;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +50,28 @@ public class AQLCalendar implements IModule {
 
 	public static final String PERM_CALENDAR_EDIT = AquilonThings.PERM_ROOT+".calendar.edit.";
 	public static final String PERM_CALENDAR_READ = AquilonThings.PERM_ROOT+".calendar.read.";
+	public static final String PERM_CALENDAR_RELOAD = AquilonThings.PERM_ROOT+".calendar.reload";
+
+	private static final String SQL_UPDATE_MONTH = "INSERT INTO aqlcalendar_months VALUES (?, ?, ?, ?, ?) " +
+			"ON DUPLICATE KEY UPDATE name = ?, days = ?";
+	private static final String SQL_UPDATE_SEASON = "INSERT INTO aqlcalendar_seasons VALUES (?, ?, ?, ?, ?) " +
+			"ON DUPLICATE KEY UPDATE name = ?, day_ratio = ?";
+	private static final String SQL_UPDATE_TYPE = "INSERT INTO aqlcalendar_types VALUES (?, ?, ?) " +
+			"ON DUPLICATE KEY UPDATE day_length = ?, seasons_offset = ?";
+	private static final String SQL_UPDATE_WORLD = "INSERT INTO aqlcalendar_worlds" +
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+			"ON DUPLICATE KEY UPDATE type = ?, y_year = ?, fixed_year = ?, s_season = ?, fixed_season = ?, " +
+			"m_month = ?, fixed_month = ?, d_day = ?, fixed_day = ?";
+
+	private static final String SQL_FIND_WORLD = "SELECT * FROM aqlcalendar_worlds WHERE world = ?";
+	private static final String SQL_FIND_ALL_WORLDS = "SELECT * FROM aqlcalendar_worlds";
+	private static final String SQL_FIND_MONTH = "SELECT * FROM aqlcalendar_months WHERE type = ? AND id = ?";
+	private static final String SQL_FIND_TYPE_MONTHS = "SELECT * FROM aqlcalendar_months WHERE type = ? " +
+			"ORDER BY i_index";
+	private static final String SQL_FIND_SEASON = "SELECT * FROM aqlcalendar_seasons WHERE type = ? AND id = ?";
+	private static final String SQL_FIND_TYPE_SEASONS = "SELECT * FROM aqlcalendar_seasons WHERE type = ? " +
+			"ORDER BY i_index";
+	private static final String SQL_FIND_TYPE = "SELECT * FROM aqlcalendar_types WHERE type = ?";
 
 	private DatabaseConnector db;
 	private Map<String, WorldCalendar> worlds;
@@ -87,6 +113,14 @@ public class AQLCalendar implements IModule {
 			return true;
 		}
 
+		if (args[0].equals("reload")) {
+			this.worlds.clear();
+			this.types.clear();
+			sendUpdatePackets();
+			sender.sendMessage(ChatColor.YELLOW+"Reloaded all calendars");
+			return true;
+		}
+
 		if (args[0].equalsIgnoreCase("get")) return runGetWorldCalendar(sender, args);
 		else if (args[0].equalsIgnoreCase("set")) {
 			USAGE = ChatColor.YELLOW+"Usage: "+ChatColor.WHITE+"/"+COMMAND+" set (world | type) [args...]";
@@ -104,14 +138,39 @@ public class AQLCalendar implements IModule {
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
 		if (!cmd.getName().equalsIgnoreCase(COMMAND)) return null;
-		if (sender instanceof Player)
-			if (!sender.hasPermission(PERM_CALENDAR_EDIT.concat(((Player) sender).getWorld().getName()))) return null;
+		WorldCalendar cal = null;
+		if (sender instanceof Player) {
+			Player player = ((Player) sender);
+			if (!sender.hasPermission(PERM_CALENDAR_EDIT.concat(player.getWorld().getName()))) return null;
+			cal = getWorldCalendar(player.getWorld().getName());
+		}
+
 		if (args.length == 1) return Stream.of("get", "set")
 				.filter(s -> args[0].length() < 1 || s.startsWith(args[0])).collect(Collectors.toList());
 		if (args.length == 2 && args[0].equals("get")) return Bukkit.getWorlds().stream().map(World::getName)
 				.filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
 		if (args.length == 2 && args[0].equals("set")) return Stream.of("world", "type")
 				.filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
+		if (args.length == 3 && args[0].equals("set") && args[1].equals("world"))
+			return Stream.of("day", "month", "season", "year")
+				.filter(s -> args[2].length() < 1 || s.startsWith(args[2])).collect(Collectors.toList());
+		if (cal != null) {
+			if (args.length == 4 && args[0].equals("set") && args[1].equals("world") && args[2].equals("month")) {
+				List<String> res = cal.getType().getMonths().stream().map(Month::getId)
+						.filter(s -> args[3].length() < 1 || s.startsWith(args[3])).collect(Collectors.toList());
+				res.add("auto");
+				return res;
+			}
+			if (args.length == 4 && args[0].equals("set") && args[1].equals("world") && args[2].equals("season")) {
+				List<String> res = cal.getType().getSeasons().stream().map(Season::getId)
+						.filter(s -> args[3].length() < 1 || s.startsWith(args[3])).collect(Collectors.toList());
+				res.add("auto");
+				return res;
+			}
+		}
+		if (args.length == 5 && args[0].equals("set") && args[1].equals("world"))
+			return Bukkit.getWorlds().stream().map(World::getName)
+					.filter(s -> args[4].length() < 1 || s.startsWith(args[4])).collect(Collectors.toList());
 		return null;
 	}
 
@@ -243,73 +302,102 @@ public class AQLCalendar implements IModule {
 	// ---- Database ----
 
 	private WorldCalendar retrieveWorldCalendar(String worldName) {
-		/* // FIXME
 		Connection con = db.startTransaction();
-		WorldCalendar res = null;
+		String calType = null;
+		int year = 0, day = 0;
+		String monthId = null, seasonId = null;
+		boolean fixedYear, fixedMonth, fixedSeason, fixedDay;
+		fixedYear = fixedMonth = fixedSeason = fixedDay = false;
 		try {
-			PreparedStatement stmt = db.prepare(con, SQL_GET_SEASON);
+			PreparedStatement stmt = db.prepare(con, SQL_FIND_WORLD);
 			stmt.setString(1, worldName);
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
-				res = new WorldCalendar(worldName, rs.getLong("day_length"));
-				String season = rs.getString("season");
-				res.setSeasons(season != null ? Season.valueOf(season) : null);
-				res.setYear(rs.getInt("year"));
+				calType = rs.getString("type");
+				year = rs.getInt("y_year");
+				fixedYear = rs.getBoolean("fixed_year");
+				day = rs.getInt("d_day");
+				fixedDay = rs.getBoolean("fixed_day");
+				monthId = rs.getString("m_month");
+				fixedMonth = rs.getBoolean("fixed_month");
+				seasonId = rs.getString("s_season");
+				fixedSeason = rs.getBoolean("fixed_season");
 			}
 		} catch (SQLException e) {
-			db.endTransaction(con, e, SQL_GET_SEASON);
+			db.endTransaction(con, e, SQL_FIND_WORLD);
 			return null;
 		}
 		db.endTransaction(con);
-		return res;
-		*/
-		return new WorldCalendar(worldName, getCalendarType("test"));
+		if (calType == null) return null;
+		CalendarType type = getCalendarType(calType);
+		if (type == null) return null;
+		return new WorldCalendar(worldName, type)
+				.setYear(year, fixedYear)
+				.setSeason(type.getSeasons().get(seasonId), fixedSeason)
+				.setMonth(type.getMonths().get(monthId), fixedMonth)
+				.setDay(day, fixedDay);
 	}
 
 	private boolean updateWorldCalendar(WorldCalendar info) {
-		/* // FIXME
-		Connection con = db.startTransaction();
-		try {
-			PreparedStatement stmt = db.prepare(con, SQL_UPDATE_SEASON);
-			stmt.setString(1, info.getWorldName());
-			stmt.setLong(2, info.getTotalDayLength());
-			stmt.setLong(5, info.getTotalDayLength());
-			stmt.setInt(3, info.getYear());
-			stmt.setInt(6, info.getYear());
-			stmt.setString(4, info.getSeasons().name());
-			stmt.setString(7, info.getSeasons().name());
-			stmt.executeUpdate();
-		} catch (SQLException e) {
-			db.endTransaction(con, e, SQL_UPDATE_SEASON);
-			return false;
-		}
-		db.endTransaction(con);
-		*/
+		// TODO
 		return true;
 	}
 
 	private CalendarType retrieveCalendarType(String type) {
-		// TODO
-		return new CalendarBuilder(type)
-				.dayLength(144000)
-				.seasonDaysOffset(80)
-				.addSeason("winter", "Hiver", 0.5f)
-				.addSeason("spring", "Spring", 0.58f)
-				.addSeason("summer", "Summer", 0.66f)
-				.addSeason("autumn", "Autumn", 0.58f)
-				.addMonth("january", "January", 30)
-				.addMonth("february", "February", 30)
-				.addMonth("march", "March", 30)
-				.addMonth("april", "April", 30)
-				.addMonth("may", "May", 30)
-				.addMonth("june", "June", 30)
-				.addMonth("july", "July", 30)
-				.addMonth("august", "August", 30)
-				.addMonth("september", "September", 30)
-				.addMonth("october", "October", 30)
-				.addMonth("november", "November", 30)
-				.addMonth("december", "December", 30)
-				.build();
+		CalendarTypeBuilder builder = new CalendarTypeBuilder(type);
+		Connection con = db.startTransaction();
+		try {
+			PreparedStatement stmt = db.prepare(con, SQL_FIND_TYPE);
+			stmt.setString(1, builder.getType());
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				builder.dayLength(rs.getLong("day_length"))
+						.seasonDaysOffset(rs.getInt("seasons_offset"));
+			}
+		} catch (SQLException e) {
+			db.endTransaction(con, e, SQL_FIND_TYPE);
+			return null;
+		}
+		db.endTransaction(con);
+		if (!retrieveCalendarMonths(builder)) return null;
+		if (!retrieveCalendarSeasons(builder)) return null;
+		return builder.build();
+	}
+
+	private boolean retrieveCalendarMonths(CalendarTypeBuilder builder) {
+		Connection con = db.startTransaction();
+		try {
+			PreparedStatement stmt = db.prepare(con, SQL_FIND_TYPE_MONTHS);
+			stmt.setString(1, builder.getType());
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				builder.addMonth(rs.getString("id"),
+						rs.getString("name"), rs.getInt("days"));
+			}
+		} catch (SQLException e) {
+			db.endTransaction(con, e, SQL_FIND_TYPE_MONTHS);
+			return false;
+		}
+		db.endTransaction(con);
+		return true;
+	}
+
+	private boolean retrieveCalendarSeasons(CalendarTypeBuilder builder) {
+		Connection con = db.startTransaction();
+		try {
+			PreparedStatement stmt = db.prepare(con, SQL_FIND_TYPE_SEASONS);
+			stmt.setString(1, builder.getType());
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				builder.addSeason(rs.getString("id"),
+						rs.getString("name"), rs.getFloat("day_ratio"));
+			}
+		} catch (SQLException e) {
+			db.endTransaction(con, e, SQL_FIND_TYPE_SEASONS);
+			return false;
+		}
+		db.endTransaction(con);
+		return true;
 	}
 
 	public boolean updateCalendarType(CalendarType type) {

@@ -59,12 +59,12 @@ public class CalendarSet<T extends CalendarElement> implements Iterable<T> {
 
     // List accessors
 
-    public T get(int id) {
-        return list.get(id);
+    public T get(int index) {
+        return list.get(index);
     }
 
-    public T get(String name) {
-        return map.get(name);
+    public T get(String id) {
+        return map.get(id);
     }
 
     public int size() {
