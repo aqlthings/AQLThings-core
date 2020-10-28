@@ -37,7 +37,7 @@ import java.util.Map;
 public class AQLRegionBorder implements IModule {
 	public static final ModuleLogger LOGGER = ModuleLogger.get();
 	public static final String COMMAND = "reloadborders";
-	public static final String CHANNEL_REGION_BORDER = "region_border";
+	public static final String CHANNEL_REGION_BORDER = "mapborder";
 	public static final String PERM_REGIONBORDER_RELOAD = AquilonThings.PERM_ROOT+".regionborder.reload";
 	public static final File WORLDGUARD_FOLDER = new File(AquilonThings.instance.getDataFolder(),"../WorldGuard/worlds/");
 

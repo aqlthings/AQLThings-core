@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,9 +42,7 @@ public class DatabaseConnector {
 	}
 
 	/**
-	 * Méthode de connection.
-	 * 
-	 * @throws SQLException
+	 * Connection method
 	 */
 	private Connection getConnection() {
 	    if (DEBUG) {
@@ -57,18 +57,22 @@ public class DatabaseConnector {
             LOG.info(LOG_PREFIX+"Connexion de la base de données. > "+stackData);
         }
 
-		String url = "jdbc:mysql://" + address + ":" + port + "/" + base + (!secure?"?useSSL=false":"");
+	    List<String> options = new ArrayList<>();
+	    options.add("useUnicode=true");
+	    options.add("characterEncoding=utf-8");
+	    if (!secure) options.add("useSSL=false");
+		String url = "jdbc:mysql://" + address + ":" + port + "/" + base + "?" + String.join("&", options);
 		try {
             return DriverManager.getConnection(url, user, password);
 		} catch (SQLException ex) {
 			LOG.severe(LOG_PREFIX+"Problème de connexion à la base de donnée !");
-			LOG.severe(LOG_PREFIX+afficherErreur(ex.getSQLState()));
+			LOG.severe(LOG_PREFIX+ displayError(ex.getSQLState()));
 			LOG.log(Level.SEVERE, LOG_PREFIX+ex.getMessage(), ex);
 		}
 		return null;
 	}
 
-	private static String afficherErreur(String sqls) {
+	private static String displayError(String sqls) {
 		if (sqls==null) return "Code [null], État indeterminé.";
 		if(sqls.contains("08S01"))
 			return "Code ["+sqls+"] Le serveur MySQL ne répond pas.";
@@ -170,7 +174,7 @@ public class DatabaseConnector {
 		String pre = LOG_PREFIX;
 		if (sql!=null) pre += "Erreur dans l'execution de la requete SQL: "+sql+"\n\t";
 		else pre += "Erreur : ";
-		LOG.warning(pre+afficherErreur(ex.getSQLState()));
+		LOG.warning(pre+ displayError(ex.getSQLState()));
 		LOG.log(Level.WARNING, LOG_PREFIX+ex.getMessage(), ex);
 	}
 
