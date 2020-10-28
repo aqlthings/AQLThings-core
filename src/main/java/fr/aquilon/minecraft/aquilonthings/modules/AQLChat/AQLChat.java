@@ -54,7 +54,6 @@ public class AQLChat implements IModule {
     public static final String CHANNEL_CHAT_ICON = "chat_icon";
 
     public static final String PERM_CHAN_BASE = AquilonThings.PERM_ROOT + ".chat.channel.";
-    public static final String PERM_CHAT_FORMATED = AquilonThings.PERM_ROOT + ".chat.formated";
 
     public static final String DEFAULT_CHANNEL = "Global";
     public static final String SQL_ADD_PLAYER_CHAN = "INSERT INTO aqlchat_players VALUES (?, ?);";
@@ -160,6 +159,11 @@ public class AQLChat implements IModule {
                 ChatChannel chan = findChannel(args[2]);
                 if (chan==null) {
                     sender.sendMessage(ChatColor.RED + "Channel inexistant !");
+                    return true;
+                }
+
+                if (!sender.hasPermission(chan.getBanPermission())) {
+                    sender.sendMessage(ChatColor.YELLOW+"Hey, Tu t'es pris pour qui ?");
                     return true;
                 }
 

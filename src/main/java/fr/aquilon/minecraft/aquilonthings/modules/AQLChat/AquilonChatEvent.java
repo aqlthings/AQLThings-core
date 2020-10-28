@@ -140,7 +140,7 @@ public class AquilonChatEvent extends Event implements Cancellable, AquilonEvent
      * @return <code>true</code> if the sender is console or has the permission, <code>false</code> otherwise
      */
     public boolean isMessageColored() {
-        return isConsole() || sender.hasPermission(AQLChat.PERM_CHAT_FORMATED);
+        return isConsole() || sender.hasPermission(channel.getFormatPermission());
     }
 
     @Override

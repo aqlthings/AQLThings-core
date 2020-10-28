@@ -68,6 +68,14 @@ public class ChatChannel implements JSONExportable {
         return getGlobalPermission().concat(".leave");
     }
 
+    public String getFormatPermission() {
+        return getGlobalPermission().concat(".format");
+    }
+
+    public String getBanPermission() {
+        return getGlobalPermission().concat(".ban");
+    }
+
     public String getNick() {
         return nick;
     }
