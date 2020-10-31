@@ -56,7 +56,7 @@ public class AQLRandoms implements IModule {
 		Player p = ((Player) sender);
 		String uuid = p.getUniqueId().toString().replaceAll("-","");
 		int max = 20;
-		int customBonus = 0;
+		StringBuilder bonusString = new StringBuilder();
 		boolean priv = false;
 		CharacterSkill charSkill = null;
 		String usage = ChatColor.YELLOW+"Syntaxe invalide !\nExemple: "+
@@ -100,15 +100,10 @@ public class AQLRandoms implements IModule {
 			String[] arg_arr = args.replaceAll(" ","").split("(?=[\\+-])");
 			for (String arg : arg_arr) {
 				if (arg.startsWith("+") || arg.startsWith("-")) {
-					try {
-						customBonus += Integer.parseInt(arg);
-					} catch (NumberFormatException e) {
-						sender.sendMessage(usage);
-						return true;
-					}
+					bonusString.append(arg);
 				} else {
 					try {
-						max = Integer.parseInt(arg);
+						max = Integer.parseUnsignedInt(arg);
 					} catch (NumberFormatException e) {
 						sender.sendMessage(usage);
 						return true;
@@ -121,7 +116,13 @@ public class AQLRandoms implements IModule {
 			}
 		}
 
-		AQLRandomEvent evt = new AQLRandomEvent(p, max, priv, customBonus, charSkill);
+		AQLRandomEvent evt;
+		try {
+			evt = new AQLRandomEvent(p, max, priv, bonusString.toString(), charSkill);
+		} catch (IllegalArgumentException ex) {
+			sender.sendMessage(usage);
+			return true;
+		}
 		evt.call(this);
 		return true;
 	}
