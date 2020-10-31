@@ -25,7 +25,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageRecipient;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -318,9 +317,9 @@ public class AquilonThings extends JavaPlugin implements Listener {
 
 	private static Method getServerMessageDispatcher() {
 		try {
-			Class c = AquilonThings.class.getClassLoader().loadClass("fr.aquilon.minecraft.Network");
+			Class<?> c = AquilonThings.instance.getClassLoader().loadClass("fr.aquilon.minecraft.Network");
 			return c.getMethod("onPluginMessageReceived", String.class, byte[].class);
-		} catch (ClassNotFoundException | NoSuchMethodException e) {
+		} catch (Exception e) {
 			LOGGER.warning(LOG_PREFIX+" Unable to setup Plugin-Server communication");
 			LOGGER.log(Level.FINE, LOG_PREFIX+" Reflection error:",e);
 			return null;
@@ -339,11 +338,11 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		payload[0] = 0;
 		System.arraycopy(data, 0, payload, 1, data.length);
 		if (target == null) {
-			Method serverMessageDispatcher = getServerMessageDispatcher();
-			if (serverMessageDispatcher==null) return;
 			try {
+				Method serverMessageDispatcher = getServerMessageDispatcher();
+				if (serverMessageDispatcher==null) return;
 				serverMessageDispatcher.invoke(null, chan, payload);
-			} catch (InvocationTargetException | IllegalAccessException e) {
+			} catch (Exception e) {
 				LOGGER.warning(LOG_PREFIX+" Unable to send server message");
 				LOGGER.log(Level.FINE, LOG_PREFIX+" Reflection error:",e);
 			}

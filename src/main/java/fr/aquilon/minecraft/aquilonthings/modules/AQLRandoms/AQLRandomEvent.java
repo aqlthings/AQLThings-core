@@ -5,6 +5,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLMisc;
 import fr.aquilon.minecraft.aquilonthings.utils.AquilonEvent;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONPlayer;
+import fr.aquilon.minecraft.utils.JSONUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
@@ -19,20 +20,24 @@ import java.util.Random;
  * Created by Billi on 01/11/2017.
  */
 public class AQLRandomEvent extends Event implements AquilonEvent<AQLRandoms> {
-    private static HandlerList handlers = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
-    private Player sender;
-    private int limit;
-    private boolean secret;
-    private int customBonus;
-    private CharacterSkill skill;
-    private int value;
+    private static final String BONUS_STRING_REGEX = "([\\+-]\\d+)+";
 
-    public AQLRandomEvent(Player sender, int limit, boolean secret, int customBonus, CharacterSkill skill) {
+    private final Player sender;
+    private final int limit;
+    private final boolean secret;
+    private final String bonusString;
+    private final CharacterSkill skill;
+    private final int value;
+
+    public AQLRandomEvent(Player sender, int limit, boolean secret, String bonusString, CharacterSkill skill) {
         this.sender = sender;
         this.limit = limit;
         this.secret = secret;
-        this.customBonus = customBonus;
+        this.bonusString = bonusString != null ? bonusString.replaceAll(" ", "") : null;
+        if (bonusString != null && !this.bonusString.matches(BONUS_STRING_REGEX))
+            throw new IllegalArgumentException("Malformed bonus string");
         this.skill = skill;
         Random alea = new Random();
         this.value = alea.nextInt(limit)+1;
@@ -45,7 +50,10 @@ public class AQLRandomEvent extends Event implements AquilonEvent<AQLRandoms> {
         res.put("name",getFinalValue());
         res.put("roll",getValue());
         res.put("limit",getLimit());
-        if (getCustomBonus()!=0) res.put("customBonus", getCustomBonus());
+        String[] customBonus = getCustomBonuses();
+        if (customBonus != null && customBonus.length > 0) {
+            res.put("customBonus", JSONUtils.jsonArray(customBonus));
+        }
         if (skill!=null) {
             res.put("skill",skill.toJSON());
             res.put("skillBonus",getSkillBonus());
@@ -80,8 +88,26 @@ public class AQLRandomEvent extends Event implements AquilonEvent<AQLRandoms> {
         return limit;
     }
 
+    public String[] getCustomBonuses() {
+        return bonusString.split("(?=[\\+-])");
+    }
+
     public int getCustomBonus() {
-        return customBonus;
+        int total = 0;
+        try {
+            for (String p : getCustomBonuses()) {
+                if (p.startsWith("+")) {
+                    total += Integer.parseUnsignedInt(p.substring(1));
+                } else if (p.startsWith("-")) {
+                    total -= Integer.parseUnsignedInt(p.substring(1));
+                } else {
+                    throw new IllegalStateException("Invalid bonus string");
+                }
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("Invalid bonus string");
+        }
+        return total;
     }
 
     public CharacterSkill getSkill() {
@@ -109,11 +135,10 @@ public class AQLRandomEvent extends Event implements AquilonEvent<AQLRandoms> {
         int totalBonus = getTotalBonus();
         if (totalBonus==0 && getSkill()==null) return null;
         String res = getSkillBonusText();
-        int customBonus = getCustomBonus();
-        if (customBonus!=0) {
+        String[] customBonus = getCustomBonuses();
+        if (customBonus!= null && customBonus.length>0) {
             if (res.length()>0) res += ", ";
-            if (totalBonus>=0) res += "+"+customBonus;
-            else res += customBonus;
+            res += String.join(" ", customBonus);
         }
         return res;
     }
