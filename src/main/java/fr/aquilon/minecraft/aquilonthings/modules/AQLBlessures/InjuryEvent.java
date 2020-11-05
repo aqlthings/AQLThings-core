@@ -37,7 +37,7 @@ public class InjuryEvent extends PlayerEvent implements AquilonEvent<AQLBlessure
     public JSONObject toJSON() {
         JSONObject res;
         if (auto) {
-            res = pState.toJSON();
+            res = pState.toJSON(true);
         } else {
             res = new JSONObject();
             res.put("player", JSONPlayer.toJSON(getPlayer(), false));

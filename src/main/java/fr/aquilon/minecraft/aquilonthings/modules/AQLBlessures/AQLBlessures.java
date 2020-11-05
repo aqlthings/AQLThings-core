@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -136,6 +137,14 @@ public class AQLBlessures implements IModule {
             config.getBoolean("config.freezeJoueurMort", InjuryConfig.DEF_FREEZE_ON_DEATH)
         );
         return true;
+    }
+
+    public List<InjuryCounter> getCounters() {
+        return Collections.unmodifiableList(new ArrayList<>(counters.values()));
+    }
+
+    public InjuryCounter getCounter(String name) {
+        return counters.get(name);
     }
 
     /**
@@ -349,6 +358,7 @@ public class AQLBlessures implements IModule {
                         .setFreezePlayersOnDeath(args[4].equalsIgnoreCase("oui"));
             }
             InjuryCounter counter = new InjuryCounter(
+                    counterName,
                     this,
                     localContext
             );
@@ -441,12 +451,12 @@ public class AQLBlessures implements IModule {
                 return true;
             }
             String uuid = p.getUniqueId().toString().replace("-","");
-            if (!counter.getPlayerStates().containsKey(uuid)) {
+            PlayerState pState = counter.getPlayerState(uuid);
+            if (pState == null) {
                 sender.sendMessage(ChatColor.RED + "Le joueur n'est pas enregistré.");
                 return true;
             }
-            PlayerState pState = counter.getPlayerStates().get(uuid);
-            if (pState.reset(counter)) counter.getPlayerStates().remove(uuid); // If reset was successful remove the entry
+            if (pState.reset(counter)) counter.removePlayerState(uuid); // If reset was successful remove the entry
             playersCounter.remove(uuid);
             sendTargetList(sender, counter);
         } else {
@@ -503,7 +513,7 @@ public class AQLBlessures implements IModule {
                     " n'a pas débuté. ("+ChatColor.WHITE+"/blessure start"+ChatColor.YELLOW+")");
             return true;
         }
-        PlayerState pState = counter.getPlayerStates().get(uuid);
+        PlayerState pState = counter.getPlayerState(uuid);
 
         if (symbol == 0 || symbol == '=') {
             pState.setScore(counter, value, false);
@@ -587,9 +597,9 @@ public class AQLBlessures implements IModule {
         counter.stop();
         sender.sendMessage(ChatColor.YELLOW + "Arrêt du compteur "+ChatColor.WHITE+counterName+ChatColor.YELLOW+
                 "\nRappel des blessures :");
-        Iterator<String> it = counter.getPlayerStates().keySet().iterator();
+        Iterator<PlayerState> it = counter.getPlayerStateIterator();
         while (it.hasNext()) {
-            PlayerState p = counter.getPlayerStates().get(it.next());
+            PlayerState p = it.next();
             String sUUID = p.getPlayer().getUniqueId().toString().replace("-","");
             sender.sendMessage(ChatColor.YELLOW + "  - " + p.stateString(true));
             if (p.reset(counter)) it.remove(); // If reset was successful remove the entry
@@ -615,7 +625,7 @@ public class AQLBlessures implements IModule {
                 sender.sendMessage(ChatColor.YELLOW + "Vous n'êtes enregistré dans aucun compteur.");
                 return true;
             }
-            PlayerState pState = counters.get(counterName).getPlayerStates().get(pUUID);
+            PlayerState pState = counters.get(counterName).getPlayerState(pUUID);
             sender.sendMessage(pState.stateString(true));
             return true;
         }
@@ -633,9 +643,9 @@ public class AQLBlessures implements IModule {
                         );
                 if (counter.isStarted())
                     str.append(ChatColor.YELLOW + " (" + ChatColor.GRAY)
-                            .append(counter.getPlayerStates().size())
+                            .append(counter.getPlayerCount())
                             .append(" joueur")
-                            .append(counter.getPlayerStates().size() > 1 ? "s" : "")
+                            .append(counter.getPlayerCount() > 1 ? "s" : "")
                             .append(ChatColor.YELLOW).append(")");
             }
             if (counters.size()==0)
@@ -657,7 +667,7 @@ public class AQLBlessures implements IModule {
                 sender.sendMessage(ChatColor.RED + "Joueur inconnu !");
                 return true;
             }
-            PlayerState s = counter.getPlayerStates().get(p.getUniqueId().toString().replaceAll("-",""));
+            PlayerState s = counter.getPlayerState(p.getUniqueId().toString().replaceAll("-",""));
             if (s==null) {
                 sender.sendMessage(ChatColor.YELLOW + "Le joueur n'est pas présent dans le compteur ("+ChatColor.WHITE+"/blessure add"+ChatColor.YELLOW+")");
                 return true;
@@ -666,14 +676,20 @@ public class AQLBlessures implements IModule {
             int inc = s.getIncrement()>0 ? s.getIncrement() : counter.getConfig().getScoreIncrementLimit();
             sender.sendMessage(ChatColor.YELLOW+"  Random increment : "+ChatColor.WHITE+inc);
         } else {
-            String str = ChatColor.YELLOW + "Compteur de morts (";
-            str+=(counter.isActive()?ChatColor.DARK_GREEN+"actif":counter.isStarted()?ChatColor.GOLD+"en pause":ChatColor.RED+"arrété")+ChatColor.YELLOW+"):";
+            StringBuilder str = new StringBuilder(ChatColor.YELLOW + "Compteur de morts (");
+            if (counter.isActive()) str.append(ChatColor.DARK_GREEN.toString()).append("actif");
+            else if (counter.isStarted()) str.append(ChatColor.GOLD.toString()).append("en pause");
+            else str.append(ChatColor.RED.toString()).append("arrété");
+            str.append(ChatColor.YELLOW).append("):");
             // Envoi de la liste des joueurs et du nombre de leur mort
-            for (PlayerState p: counter.getPlayerStates().values()) {
-                str+="\n" + ChatColor.YELLOW + "  - " + p.stateString(false);
+
+            for (PlayerState p: counter.getPlayerStates()) {
+                str.append("\n").append(ChatColor.YELLOW.toString()).append("  - ")
+                        .append(p.stateString(false));
             }
-            if (counter.getPlayerStates().size()==0) str+="\n  "+ChatColor.GRAY+ChatColor.ITALIC+"Aucun joueur";
-            sender.sendMessage(str);
+            if (counter.getPlayerCount()==0) str.append("\n  ").append(ChatColor.GRAY.toString())
+                    .append(ChatColor.ITALIC.toString()).append("Aucun joueur");
+            sender.sendMessage(str.toString());
             // TODO: sender.sendMessage(ChatColor.YELLOW+"[ Déconnectés ]");
         }
         return true;
@@ -818,7 +834,7 @@ public class AQLBlessures implements IModule {
      */
     private void sendTargetList(CommandSender sender, InjuryCounter counter) {
         String list = "";
-        for (PlayerState p: counter.getPlayerStates().values()) {
+        for (PlayerState p: counter.getPlayerStates()) {
             list += p.getColoredPlayerName()+ ChatColor.YELLOW + ", ";
         }
         if (list.isEmpty()) sender.sendMessage(ChatColor.YELLOW + "Aucun joueur dans le compteur. ("+
@@ -900,7 +916,7 @@ public class AQLBlessures implements IModule {
         if (playersCounter.containsKey(uuid)) {
             InjuryCounter counter = counters.get(playersCounter.get(uuid));
             if (!counter.isActive()) return;
-            PlayerState pS = counter.getPlayerStates().get(uuid);
+            PlayerState pS = counter.getPlayerState(uuid);
             if (pS==null) return;
             pS.addDeath(counter, player.getLocation());
         }
@@ -929,7 +945,7 @@ public class AQLBlessures implements IModule {
         boolean focused = playersCounter.containsKey(uuid);
         if (focused) {
             InjuryCounter counter = counters.get(playersCounter.get(uuid));
-            counter.getPlayerStates().get(uuid).updatePlayer(counter, p);
+            counter.getPlayerState(uuid).updatePlayer(counter, p);
         } else if (frozenPlayers.containsKey(uuid)) { // Si il est mort est qu'il n'est plus focus par un compteur
             unfreezePlayer(p);
         }
