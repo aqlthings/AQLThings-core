@@ -28,6 +28,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Module de gestion des blessures
@@ -192,6 +195,30 @@ public class AQLBlessures implements IModule {
             }
         }
         return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
+        if (!cmd.getName().equals(COMMAND)) return null;
+        if (args.length == 1) {
+            List<String> res = Arrays.asList("info", "légère", "grave");
+            if (sender.hasPermission(PERM_COUNTER)) res.addAll(Arrays.asList(
+                    "start", "stop", "add", "del", "score", "freeze", "unfreeze", "update", "opts"));
+            return res;
+        }
+        if (!sender.hasPermission(PERM_COUNTER)) return null;
+        List<String> counterCompletes = Arrays.asList("info", "start", "pause", "stop", "add", "del", "score", "opts");
+        if (args.length == 2 && counterCompletes.contains(args[0]))
+            return counters.keySet().stream()
+                .filter(s -> args[1].length() < 1 || s.startsWith(args[1])).collect(Collectors.toList());
+        List<String> playerCompletes = Arrays.asList("info", "add", "del", "score");
+        if (args.length == 3 && playerCompletes.contains(args[0]))
+            return Bukkit.getOnlinePlayers().stream().map(Player::getName)
+                .filter(s -> args[2].length() < 1 || s.startsWith(args[2])).collect(Collectors.toList());
+        if (args.length == 3 && args[0].equals("opts"))
+            return Stream.of("list", "legere", "grave", "mort", "freeze", "random")
+                .filter(s -> args[2].length() < 1 || s.startsWith(args[2])).collect(Collectors.toList());
+        return null;
     }
 
     public boolean updatePlayerList(CommandSender sender) {
@@ -366,10 +393,9 @@ public class AQLBlessures implements IModule {
         }
         InjuryCounter counter = counters.get(counterName);
         if (counter.isStarted()) {
-            Player p = null;
-            for (Player a: Bukkit.getOnlinePlayers()) {
-                if (a.getName().equals(args[2])) p = a;
-            }
+            Player p = Bukkit.getOnlinePlayers().stream()
+                    .filter(t -> t.getName().equals(args[2]))
+                    .findFirst().orElse(null);
             if (p==null) {
                 sender.sendMessage(ChatColor.RED + "Joueur inconnu !");
                 return true;
@@ -407,10 +433,9 @@ public class AQLBlessures implements IModule {
         }
         InjuryCounter counter = counters.get(counterName);
         if (counter.isStarted()) {
-            Player p = null;
-            for (Player a: Bukkit.getOnlinePlayers()) {
-                if (a.getName().equals(args[2])) p = a;
-            }
+            Player p = Bukkit.getOnlinePlayers().stream()
+                    .filter(t -> t.getName().equals(args[2]))
+                    .findFirst().orElse(null);
             if (p==null) {
                 sender.sendMessage(ChatColor.RED + "Joueur inconnu !");
                 return true;
@@ -442,10 +467,9 @@ public class AQLBlessures implements IModule {
             sender.sendMessage(COMMAND_PREFIX + " score <joueur> <valeur>");
             return true;
         }
-        Player p = null;
-        for (Player a: Bukkit.getOnlinePlayers()) {
-            if (a.getName().equals(args[1])) p = a;
-        }
+        Player p = Bukkit.getOnlinePlayers().stream()
+                .filter(t -> t.getName().equals(args[1]))
+                .findFirst().orElse(null);
         if (p==null) {
             sender.sendMessage(ChatColor.RED + "Joueur inconnu !");
             return true;
@@ -626,10 +650,9 @@ public class AQLBlessures implements IModule {
         }
         InjuryCounter counter = counters.get(counterName);
         if (args.length==3) {
-            Player p = null;
-            for (Player a: Bukkit.getOnlinePlayers()) {
-                if (a.getName().equals(args[2])) p = a;
-            }
+            Player p = Bukkit.getOnlinePlayers().stream()
+                    .filter(t -> t.getName().equals(args[2]))
+                    .findFirst().orElse(null);
             if (p==null) {
                 sender.sendMessage(ChatColor.RED + "Joueur inconnu !");
                 return true;
@@ -815,10 +838,9 @@ public class AQLBlessures implements IModule {
             sender.sendMessage(ChatColor.RED + "Faut ptêtre dire de qui on parle ?");
             return true;
         }
-        Player p = null;
-        for (Player a: Bukkit.getOnlinePlayers()) {
-            if (a.getName().equals(args[1])) p = a;
-        }
+        Player p = Bukkit.getOnlinePlayers().stream()
+                .filter(t -> t.getName().equals(args[1]))
+                .findFirst().orElse(null);
         if (p==null) {
             sender.sendMessage(ChatColor.RED + "Joueur inconnu !");
             return true;
