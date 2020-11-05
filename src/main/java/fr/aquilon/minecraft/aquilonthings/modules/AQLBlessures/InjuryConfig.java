@@ -1,12 +1,15 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLBlessures;
 
 
+import fr.aquilon.minecraft.utils.JSONExportable;
+import org.json.JSONObject;
+
 /**
  * Created by Billi on 10/01/2018.
  *
  * @author Billi
  */
-public class InjuryConfig {
+public class InjuryConfig implements JSONExportable {
     public static final int DEF_SCORE_MINOR_INJURY = 80;
     public static final int DEF_SCORE_MAJOR_INJURY = 120;
     public static final int DEF_SCORE_DEAD = 200;
@@ -98,5 +101,16 @@ public class InjuryConfig {
 
     public boolean freezePlayersOnDeath() {
         return freezePlayersOnDeath;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject res = new JSONObject();
+        res.put("limitMinorInjury", scoreMinor);
+        res.put("limitSevereInjury", scoreSevere);
+        res.put("limitDeath", scoreDeath);
+        res.put("randomIncrement", scoreInc);
+        res.put("freezePlayersOnDeath", freezePlayersOnDeath);
+        return res;
     }
 }

@@ -119,7 +119,7 @@ public class PlayerState implements JSONExportable {
     public void updatePlayer(InjuryCounter ctx, Player p) {
         this.player = p;
         p.setPlayerListName(getPlayerlistName(ctx));
-        ctx.getPlayerStates().put(p.getUniqueId().toString().replaceAll("-",""), this);
+        ctx.putPlayerState(this);
     }
 
     public String getPlayerlistName(InjuryCounter ctx) {
@@ -235,17 +235,23 @@ public class PlayerState implements JSONExportable {
     // Implement interfaces
     @Override
     public JSONObject toJSON() {
+        return toJSON(false);
+    }
+
+    public JSONObject toJSON(boolean detailed) {
         JSONObject res = new JSONObject();
         res.put("player", JSONPlayer.toJSON(getPlayer(), false));
-        res.put("score", getScore());
         JSONObject state = new JSONObject();
         state.put("name",getState().name());
         state.put("text",getState().getText(false));
         state.put("color",getState().getColor().name());
         res.put("state", state);
-        res.put("deathCount", getDeathCount());
-        res.put("increment", getIncrement()>0 ? getIncrement() : JSONObject.NULL);
-        res.put("injuries", JSONUtils.jsonArray(blessures));
+        res.put("score", getScore());
+        if (detailed) {
+            res.put("deathCount", getDeathCount());
+            res.put("increment", getIncrement() > 0 ? getIncrement() : JSONObject.NULL);
+            res.put("injuries", JSONUtils.jsonArray(blessures));
+        }
         return res;
     }
 
