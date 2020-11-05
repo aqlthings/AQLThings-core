@@ -409,7 +409,7 @@ public class AQLBlessures implements IModule {
         if (counter.isStarted()) {
             Player p = null;
             for (Player a: Bukkit.getOnlinePlayers()) {
-                if (a.getName().equals(args[1])) p = a;
+                if (a.getName().equals(args[2])) p = a;
             }
             if (p==null) {
                 sender.sendMessage(ChatColor.RED + "Joueur inconnu !");
