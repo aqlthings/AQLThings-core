@@ -1,6 +1,6 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers;
 
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.AQLPlaces;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places.Place;
 import org.bukkit.ChatColor;

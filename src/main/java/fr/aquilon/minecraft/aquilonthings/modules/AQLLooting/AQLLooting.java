@@ -1,8 +1,8 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLLooting;
 
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
-import fr.aquilon.minecraft.aquilonthings.modules.IModule;
+import fr.aquilon.minecraft.aquilonthings.module.IModule;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;

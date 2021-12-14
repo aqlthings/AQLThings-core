@@ -8,8 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIError;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
@@ -22,6 +21,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Auth;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Players;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Server;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Websocket;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.configuration.file.FileConfiguration;
 

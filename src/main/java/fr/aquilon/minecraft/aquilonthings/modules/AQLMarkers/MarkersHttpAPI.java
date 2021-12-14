@@ -2,7 +2,7 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLMarkers;
 
 import fi.iki.elonen.NanoHTTPD;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIError;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIRequest;

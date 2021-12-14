@@ -1,6 +1,6 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules;
 
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;

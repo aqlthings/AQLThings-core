@@ -106,10 +106,10 @@ public class PlaceCube extends Place {
         Field f = Field.valueOf(field);
         switch (f) {
             case POS1:
-                pos1 = Place.getLocation(getWorldName(), value.toString());
+                pos1 = getLocation(getWorldName(), value.toString());
                 break;
             case POS2:
-                pos2 = Place.getLocation(getWorldName(), value.toString());
+                pos2 = getLocation(getWorldName(), value.toString());
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported field");

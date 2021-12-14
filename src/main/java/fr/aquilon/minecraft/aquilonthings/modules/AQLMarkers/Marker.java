@@ -1,6 +1,6 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLMarkers;
 
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.utils.UpsertStatement;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

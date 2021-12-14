@@ -1,15 +1,15 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLVox;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
+import fr.aquilon.minecraft.aquilonthings.module.IModule;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APILogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIStaticUser;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
-import fr.aquilon.minecraft.aquilonthings.modules.IModule;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

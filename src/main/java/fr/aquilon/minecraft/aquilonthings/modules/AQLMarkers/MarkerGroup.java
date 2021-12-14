@@ -1,7 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLMarkers;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import fr.aquilon.minecraft.utils.UpsertStatement;
 import org.json.JSONObject;

@@ -1,8 +1,8 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers;
 
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places.Place;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 
 public class TriggerFactory {
 

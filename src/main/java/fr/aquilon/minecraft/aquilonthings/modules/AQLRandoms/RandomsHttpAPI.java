@@ -1,7 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLRandoms;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.IWebsocket;

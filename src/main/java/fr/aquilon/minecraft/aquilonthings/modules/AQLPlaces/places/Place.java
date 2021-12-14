@@ -1,10 +1,10 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places;
 
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.AQLPlaces;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers.Trigger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.triggers.TriggerFailedException;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

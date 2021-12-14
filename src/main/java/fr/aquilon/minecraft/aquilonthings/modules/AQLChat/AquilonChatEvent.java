@@ -1,7 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLChat;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.utils.AquilonEvent;
 import fr.aquilon.minecraft.aquilonthings.utils.Rank;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;

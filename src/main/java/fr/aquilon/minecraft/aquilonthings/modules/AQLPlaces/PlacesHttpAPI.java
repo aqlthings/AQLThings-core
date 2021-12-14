@@ -1,7 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places.PlayerEntersBiomeEvent;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places.PlayerEntersPlaceEvent;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.places.PlayerLeavesPlaceEvent;

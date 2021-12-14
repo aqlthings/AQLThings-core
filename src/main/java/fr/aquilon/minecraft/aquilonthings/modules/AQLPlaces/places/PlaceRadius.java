@@ -99,7 +99,7 @@ public class PlaceRadius extends Place {
         Field f = Field.valueOf(field);
         switch (f) {
             case POS:
-                pos = Place.getLocation(getWorldName(), value.toString());
+                pos = getLocation(getWorldName(), value.toString());
                 break;
             case RADIUS:
                 detectionRadius = Integer.parseInt(value.toString());

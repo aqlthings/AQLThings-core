@@ -2,7 +2,6 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters;
 
 import com.google.common.hash.Hashing;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.exceptions.CharacterNotFoundEx;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.exceptions.MaxCharCountReachedEx;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.exceptions.MaxSkinCountReachedEx;
@@ -19,6 +18,7 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.Skill;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.SkillCategory;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.StaffNote;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.TempCharacter;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.entity.Player;
 
