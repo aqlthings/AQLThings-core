@@ -27,9 +27,13 @@ public class Module<T extends IModule> {
 		this.io = new ModuleInputOutputs();
 	}
 
+	public String getID() {
+		return meta.getID();
+	}
+
 	public String getName() {
-		return meta.getKey();
-	} // FIXME
+		return meta.getShortName();
+	}
 
 	public T data() {
 		return data;
