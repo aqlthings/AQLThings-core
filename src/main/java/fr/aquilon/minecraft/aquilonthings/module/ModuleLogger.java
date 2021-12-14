@@ -1,7 +1,7 @@
-package fr.aquilon.minecraft.aquilonthings;
+package fr.aquilon.minecraft.aquilonthings.module;
 
+import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
-import fr.aquilon.minecraft.aquilonthings.modules.IModule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,17 +14,21 @@ public class ModuleLogger {
 	public boolean debug;
 	private String moduleName;
 
-	@SuppressWarnings("unchecked")
 	public static ModuleLogger get() {
 		String klassName = Thread.currentThread().getStackTrace()[2].getClassName();
+		Class<?> rawKlass;
 		try {
-			Class<?> klass = ModuleLogger.class.getClassLoader().loadClass(klassName);
-			if (!IModule.class.isAssignableFrom(klass))
-				throw new IllegalAccessException("Calling class is not an AquilonThings module");
-			return get((Class<? extends IModule>) klass);
-		} catch (ClassNotFoundException | IllegalAccessException e) {
-			throw new RuntimeException("Unable to build ModuleLogger automaticaly", e);
+			rawKlass = ModuleLogger.class.getClassLoader().loadClass(klassName);
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException("Unable to automatically determine calling class", e);
 		}
+		Class<? extends IModule> klass;
+		try {
+			klass = rawKlass.asSubclass(IModule.class);
+		} catch (ClassCastException e) {
+			throw new RuntimeException("Calling class is not an AquilonThings module", e);
+		}
+		return get(klass);
 	}
 
 	public static ModuleLogger get(Class<? extends IModule> module) {

@@ -1,6 +1,6 @@
 package fr.aquilon.minecraft.aquilonthings.utils;
 
-import fr.aquilon.minecraft.aquilonthings.modules.IModule;
+import fr.aquilon.minecraft.aquilonthings.module.IModule;
 import fr.aquilon.minecraft.utils.JSONExportable;
 
 /**

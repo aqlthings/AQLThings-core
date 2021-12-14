@@ -1,8 +1,6 @@
-package fr.aquilon.minecraft.aquilonthings.utils;
+package fr.aquilon.minecraft.aquilonthings.module;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.Module;
-import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandMap;
@@ -13,7 +11,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,14 +20,6 @@ import java.util.Objects;
  */
 public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCommand {
     private final Module module;
-
-    public static ModuleCommand build(Module module, Cmd annotation) {
-        return new ModuleCommand(module, annotation.value(),
-                annotation.desc().isEmpty() ? null : annotation.desc(),
-                annotation.usage().isEmpty() ? null : annotation.usage(),
-                Arrays.asList(annotation.aliases())
-        );
-    }
 
     public ModuleCommand(Module module, String name) {
         this(module, name, null, null, null);
@@ -57,8 +46,8 @@ public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCo
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (AquilonThings.instance.getModule(module.klass.getName()) == null) {
-            sender.sendMessage("Cannot execute command '/"+commandLabel+"' in disabled AquilonThings module "+module.klass.getName());
+        if (AquilonThings.instance.getModule(module.getName()) == null) {
+            sender.sendMessage("Cannot execute command '/"+commandLabel+"' in disabled AquilonThings module "+module.getName());
             return true;
         }
 
@@ -68,7 +57,7 @@ public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCo
         try {
             ok = module.data().onCommand(sender, this, commandLabel, args);
         } catch (Throwable err) {
-            throw new CommandException("Error executing command '" + commandLabel + "' from AquilonThings module" + module.klass.getName(), err);
+            throw new CommandException("Error executing command '" + commandLabel + "' from AquilonThings module" + module.getName(), err);
         }
 
         if (!ok && usageMessage.length() > 0) {
@@ -91,7 +80,7 @@ public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCo
             for (String arg : args) {
                 message.append(arg).append(' ');
             }
-            message.deleteCharAt(message.length() - 1).append("' from AquilonThings module ").append(module.klass.getName());
+            message.deleteCharAt(message.length() - 1).append("' from AquilonThings module ").append(module.getName());
             throw new CommandException(message.toString(), err);
         }
         if (options == null) return super.tabComplete(sender, alias, args);
@@ -100,7 +89,7 @@ public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCo
 
     @Override
     public String toString() {
-        return "AquilonThings command ("+getName()+", module: "+module.klass.getName()+")";
+        return "AquilonThings command ("+getName()+", module: "+module.getName()+")";
     }
 
     /**

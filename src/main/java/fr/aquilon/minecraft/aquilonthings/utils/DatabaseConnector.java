@@ -1,4 +1,6 @@
-package fr.aquilon.minecraft.aquilonthings;
+package fr.aquilon.minecraft.aquilonthings.utils;
+
+import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

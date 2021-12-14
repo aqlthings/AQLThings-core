@@ -1,11 +1,10 @@
-package fr.aquilon.minecraft.aquilonthings.modules;
+package fr.aquilon.minecraft.aquilonthings.module;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
 import fr.aquilon.minecraft.aquilonthings.annotation.InPacket;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -15,8 +14,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 @AQLThingsModule(
 		name = "AQLTest",
 		cmds = @Cmd(value = "aql", desc = "Commande d'exemple"),
-		inPackets = @InPacket(AquilonThings.CHANNEL_READY),
-		enabled = false
+		inPackets = @InPacket(AquilonThings.CHANNEL_READY)
 )
 public class ModuleTemplate implements IModule {
 	private static final ModuleLogger LOGGER = ModuleLogger.get();

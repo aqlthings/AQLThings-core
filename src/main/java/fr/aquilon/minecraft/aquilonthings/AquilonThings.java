@@ -1,21 +1,12 @@
 package fr.aquilon.minecraft.aquilonthings;
 
-import fr.aquilon.minecraft.aquilonthings.modules.AQLBlessures.AQLBlessures;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLCalendar.AQLCalendar;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.AQLCharacters;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLChat.AQLChat;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLEmotes.AQLEmotes;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLFire.AQLFire;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLGroups;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLLooting.AQLLooting;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLMisc;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLNobles;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLPlaces.AQLPlaces;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLRegionBorder;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLStaff;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVanish;
+import fr.aquilon.minecraft.aquilonthings.module.IModule;
+import fr.aquilon.minecraft.aquilonthings.module.Module;
+import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadException;
+import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadResult;
+import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoader;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
-import fr.aquilon.minecraft.aquilonthings.modules.IModule;
+import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -26,19 +17,18 @@ import org.bukkit.plugin.messaging.PluginMessageRecipient;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class AquilonThings extends JavaPlugin implements Listener {
-	public static final String VERSION = "3.1.0";
+	public static final String VERSION = "3.2.0";
 
 	public static final String PERM_ROOT = "aqlthings";
 	public static final String PERM_NOBLE = PERM_ROOT+".noble";
@@ -55,23 +45,6 @@ public class AquilonThings extends JavaPlugin implements Listener {
     public static final Logger LOGGER = Logger.getLogger("Minecraft");
     public static final String LOG_PREFIX = "[AqlThings]";
 
-	public static final Class[] MODULE_LIST = {
-			AQLEmotes.class,
-			AQLPlaces.class,
-			AQLNobles.class,
-			AQLVanish.class,
-			AQLGroups.class,
-			AQLChat.class,
-			AQLFire.class,
-			AQLBlessures.class,
-			AQLMisc.class,
-			AQLStaff.class,
-			AQLCharacters.class,
-			AQLCalendar.class,
-			AQLLooting.class,
-            AQLRegionBorder.class
-	};
-
 	public static AquilonThings instance;
 
 	private Map<String, Module<?>> moduleList;
@@ -82,33 +55,36 @@ public class AquilonThings extends JavaPlugin implements Listener {
 
 	/**
 	 * Loads modules to be registered with the framework
-	 * @todo lecture automatique depuis le package modules (or load JARs from a "modules" folder)
 	 */
 	private void registerModules() {
 		moduleList = new HashMap<>();
-		ClassLoader loader = getClassLoader();
-		List<Class> moduleClasses;
-		if (getConfig().get("modules.enable") != null) {
-			moduleClasses = new ArrayList<>();
-			List<String> confModules = getConfig().getStringList("modules.enable");
-			for (String confModule : confModules) {
-				try {
-					moduleClasses.add(loader.loadClass(confModule));
-				} catch (ClassNotFoundException e) {
-					LOGGER.warning(LOG_PREFIX+" No module class found matching \""+confModule+"\"");
-				}
-			}
-		} else {
-			moduleClasses = new ArrayList<>(Arrays.asList(MODULE_LIST));
+		File moduleFolder = new File(getDataFolder(), "modules");
+		if (!moduleFolder.exists() && !moduleFolder.mkdir()) {
+			LOGGER.severe(LOG_PREFIX+" could not create module folder");
+			return;
 		}
-		if (getConfig().getBoolean("modules.aqlvox.enabled", true)) moduleClasses.add(AQLVox.class);
+		ModuleLoadResult loaded;
+		try {
+			loaded = ModuleLoader.loadModulesFromFolder(moduleFolder, getClassLoader());
+		} catch (NoSuchFileException e) {
+			LOGGER.severe(LOG_PREFIX+" module folder not found");
+			return;
+		}
+		moduleList.putAll(loaded.modules.stream().collect(Collectors.toMap(Module::getName, Function.identity())));
+		if (loaded.errors.size() > 0) {
+			for (ModuleLoadException err : loaded.errors) {
+				LOGGER.warning(LOG_PREFIX+" Could not load module \""+err.file+"\": "+err.getMessage());
+				LOGGER.log(Level.FINE, LOG_PREFIX+" Error details:", err);
+			}
+		}
 
-		for (Class<?> mClass : moduleClasses) {
+		if (getConfig().getBoolean("aqlvox.enabled", true)) {
 			try {
-				moduleList.put(mClass.getName(), Module.loadFromClass(mClass));
-			} catch (Module.ModuleInitException ex) {
-				LOGGER.severe(AquilonThings.LOG_PREFIX+" Error during module instantiation: "+mClass.getSimpleName());
-				LOGGER.info(AquilonThings.LOG_PREFIX+" Exception: "+ex);
+				Module<AQLVox> module = ModuleLoader.loadAnnotatedModule("AQLVox", new AQLVox());
+				moduleList.put(module.getName(), module);
+			} catch (ModuleLoadException e) {
+				LOGGER.warning(LOG_PREFIX+" Could not load AQLVox: "+e.getMessage());
+				LOGGER.log(Level.FINE, LOG_PREFIX+" Error details:", e);
 			}
 		}
 	}
@@ -166,7 +142,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 			LOGGER.warning(AquilonThings.LOG_PREFIX+" Unable to unregister module IO: "+module.getName());
 			LOGGER.info(AquilonThings.LOG_PREFIX+" Exception: "+e);
 		}
-		if (remove) moduleList.remove(module.klass.getName());
+		if (remove) moduleList.remove(module.getName());
 	}
 	
 	/**
@@ -305,7 +281,10 @@ public class AquilonThings extends JavaPlugin implements Listener {
 					sender.sendMessage(ChatColor.YELLOW+"Module non trouvé !");
 					return true;
 				}
-				Utils.warnStaff(m.klass, ChatColor.GOLD+"Warning: "+ChatColor.YELLOW+"Disabling module "+m.getName()+" ...");
+				Utils.warnStaff(
+						m.data().getClass(),
+						ChatColor.GOLD+"Warning: "+ChatColor.YELLOW+"Disabling module "+m.getName()+" ..."
+				);
 				disableModule(m);
 			}
 		} else {

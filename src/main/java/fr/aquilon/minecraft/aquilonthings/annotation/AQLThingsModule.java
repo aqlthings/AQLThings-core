@@ -28,9 +28,4 @@ public @interface AQLThingsModule {
      * @return The list of outgoing packets to register
      */
     OutPacket[] outPackets() default {};
-
-    /**
-     * @return Whether this module is enabled or not (default <code>true</code>)
-     */
-    boolean enabled() default true;
 }

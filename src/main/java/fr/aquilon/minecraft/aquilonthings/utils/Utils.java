@@ -2,11 +2,12 @@ package fr.aquilon.minecraft.aquilonthings.utils;
 
 import com.google.common.base.Charsets;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
-import fr.aquilon.minecraft.aquilonthings.modules.IModule;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
+import fr.aquilon.minecraft.aquilonthings.module.IModule;
+import fr.aquilon.minecraft.aquilonthings.module.Module;
+import fr.aquilon.minecraft.aquilonthings.module.ModuleLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -149,22 +150,25 @@ public class Utils {
         }
     }
 
-    public static boolean playerHasWarningPerm(CommandSender p, Class<? extends IModule> m) {
+    public static boolean playerHasWarningPerm(CommandSender p, Class<? extends IModule> klass) {
+        Objects.requireNonNull(klass);
+        Module m = AquilonThings.instance.getModule(klass);
         return p.hasPermission(AquilonThings.PERM_WARNING+m.getName().toLowerCase());
     }
 
-    public static void warnStaff(Class<? extends IModule> m, String message){
-        warnStaff(m, message, new String[0]);
+    public static void warnStaff(Class<? extends IModule> klass, String message){
+        warnStaff(klass, message, new String[0]);
     }
 
-    public static void warnStaff(Class<? extends IModule> m, String message, String[] except) {
+    public static void warnStaff(Class<? extends IModule> klass, String message, String[] except) {
+        Module m = klass != null ? AquilonThings.instance.getModule(klass) : null;
         if (m == null) AquilonThings.LOGGER.log(Level.INFO, AquilonThings.LOG_PREFIX+" "+message);
-        else ModuleLogger.logStatic(m, Level.INFO, null, message, null);
+        else ModuleLogger.logStatic(m.data().getClass(), Level.INFO, null, message, null);
         List<String> excepts = Arrays.asList(except);
-        String prefix = ChatColor.GRAY + (m != null ? "["+m.getSimpleName()+"] " : "[AquilonThings] ");
+        String prefix = ChatColor.GRAY + (m != null ? "["+m.getName()+"] " : "[AquilonThings] ");
         for (Player p : Bukkit.getServer().getOnlinePlayers()) {
             if (excepts.contains(p.getName())) continue;
-            if (m != null && !playerHasWarningPerm(p, m)) continue;
+            if (m != null && !playerHasWarningPerm(p, klass)) continue;
             if (m == null && !p.hasPermission(AquilonThings.PERM_WARNING+"global")) continue;
             p.sendMessage(prefix+ChatColor.WHITE+message);
         }
