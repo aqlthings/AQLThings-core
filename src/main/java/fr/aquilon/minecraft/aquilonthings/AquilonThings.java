@@ -294,10 +294,15 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		return true;
 	}
 
-	private static Method getServerMessageDispatcher() {
+	private Method getServerMessageDispatcher() {
+		String serverDispatchMethod = getConfig().getString(
+				"server.messageDispatchMethod",
+				"fr.aquilon.minecraft.Network:onPluginMessageReceived");
+		if (serverDispatchMethod == null) return null;
+		String[] parts = serverDispatchMethod.split(":", 2);
 		try {
-			Class<?> c = AquilonThings.instance.getClassLoader().loadClass("fr.aquilon.minecraft.Network");
-			return c.getMethod("onPluginMessageReceived", String.class, byte[].class);
+			Class<?> c = getClassLoader().loadClass(parts[0]);
+			return c.getMethod(parts[1], String.class, byte[].class);
 		} catch (Exception e) {
 			LOGGER.warning(LOG_PREFIX+" Unable to setup Plugin-Server communication");
 			LOGGER.log(Level.FINE, LOG_PREFIX+" Reflection error:",e);
@@ -311,7 +316,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 	 * @param channel The channel name (without the prefix, it will be added automatically)
 	 * @param data The data to send
 	 */
-	public static void sendPluginMessage(PluginMessageRecipient target, String channel, byte[] data) {
+	public void dispatchPluginMessage(PluginMessageRecipient target, String channel, byte[] data) {
 		String chan = AquilonThings.CHANNEL_PREFIX+':'+ Objects.requireNonNull(channel);
 		byte[] payload = new byte[data.length+1];
 		payload[0] = 0;
@@ -328,6 +333,16 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		} else {
 			target.sendPluginMessage(AquilonThings.instance, chan, payload);
 		}
+	}
+
+	/**
+	 * Dispatch a plugin message to the target
+	 * @param target A player to send the message to, or <code>null</code> to send it to the server
+	 * @param channel The channel name (without the prefix, it will be added automatically)
+	 * @param data The data to send
+	 */
+	public static void sendPluginMessage(PluginMessageRecipient target, String channel, byte[] data) {
+		AquilonThings.instance.dispatchPluginMessage(target, channel, data);
 	}
 
 	/**
