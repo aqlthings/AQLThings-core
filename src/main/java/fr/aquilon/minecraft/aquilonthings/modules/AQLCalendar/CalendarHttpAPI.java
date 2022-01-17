@@ -13,7 +13,7 @@ import org.json.JSONObject;
 
 /**
  * APIModule to expose AQLCalendar data
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class CalendarHttpAPI extends APIModule {
     public static final String MODULE_NAME = "calendar";

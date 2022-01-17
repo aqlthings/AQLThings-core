@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Termm
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 @AQLThingsModule(
 		name = "AQLPlaces",
@@ -92,11 +92,10 @@ public class AQLPlaces implements IModule {
 		return true;
 	}
 
-	/**
+	/*
 	 * Si un joueur est dans la liste active d'une place
 	 * On retrigger la place lors de sa connexion automatiquement
 	 * (pour éviter les connards qui vont buguse en ne faisant rien.
-	 * @param event
 	 */
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {

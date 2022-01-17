@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * Holds info about a season
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class Season implements CalendarElement {
     private final CalendarSet<Season> seasonSet;
@@ -64,6 +64,7 @@ public class Season implements CalendarElement {
     }
 
     /**
+     * @param dayLength The length of a full day in ticks (from midnight to midnight)
      * @return The duration of the day in ticks for the current season
      */
     public long getDayTimeTicks(long dayLength) {
@@ -71,6 +72,7 @@ public class Season implements CalendarElement {
     }
 
     /**
+     * @param dayLength The length of a full day in ticks (from midnight to midnight)
      * @return The duration of the night in ticks for the current season
      */
     public long getNightTimeTicks(long dayLength) {

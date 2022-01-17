@@ -13,7 +13,7 @@ import java.util.Objects;
 
 /**
  * A simple marker
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class Marker implements IMarker {
     public static final String DEFAULT_ICON = "";

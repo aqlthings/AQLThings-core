@@ -22,7 +22,7 @@ import java.util.UUID;
 
 /**
  * APIModule to expose AQLMarkers data
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class MarkersHttpAPI extends APIModule {
     public static final String MODULE_NAME = "markers";

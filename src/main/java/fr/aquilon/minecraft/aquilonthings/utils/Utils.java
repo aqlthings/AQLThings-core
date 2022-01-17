@@ -78,6 +78,8 @@ public class Utils {
 
     /**
      * Decorate the player name with prefix, color and suffix based on its rank
+     * @param p The player whose name must be decorated
+     * @return The decorated player name
      */
     public static String decoratePlayerName(Player p) {
         return decoratePlayerName(p, null, null, null);

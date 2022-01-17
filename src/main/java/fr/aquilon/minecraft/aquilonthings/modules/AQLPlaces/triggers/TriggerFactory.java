@@ -8,14 +8,14 @@ public class TriggerFactory {
 
 	/**
 	 * Retourne l'objet trigger correspondant au type demandé.
-	 * @param db
-	 * @param id
-	 * @param type
-	 * @param p
-	 * @param name
-	 * @param state
-	 * @param log
-	 * @return trigger
+	 * @param db The database connector
+	 * @param id The id of the trigger
+	 * @param type The kind of trigger
+	 * @param p The place this trigger is attached to
+	 * @param name The name of the trigger
+	 * @param state Whether this trigger is enabled or not
+	 * @param log A logger to send logs to
+	 * @return A trigger with the requested type
 	 */
 	public Trigger getTrigger(DatabaseConnector db, int id, String type, Place p, String name, boolean state, ModuleLogger log) {
 		try {

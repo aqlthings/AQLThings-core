@@ -19,7 +19,7 @@ import static fr.aquilon.minecraft.utils.JSONUtils.jsonDate;
 
 /**
  * APIModule to expose AQLBlessures data
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class BlessuresHttpAPI extends APIModule {
     public static final String MODULE_NAME = "blessures";

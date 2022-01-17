@@ -13,7 +13,7 @@ import static fr.aquilon.minecraft.utils.JSONUtils.jsonDate;
 /**
  * APIModule to expose AQLFire data
  * TODO: Add routes to expose last fires over HTTP API
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class FireHttpAPI extends APIModule {
     public static final String MODULE_NAME = "fire";

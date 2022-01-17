@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 
 /**
  * A class to help with event registration
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class EventRegistrar {
 

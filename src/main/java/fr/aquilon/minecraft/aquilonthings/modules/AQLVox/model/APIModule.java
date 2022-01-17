@@ -20,7 +20,8 @@ import java.util.function.Function;
  *     It serves requests to a set of API routes using some route handlers.
  * </p>
  * <p>
- *     Extend this class to implement a new API module.<br/>
+ *     Extend this class to implement a new API module.
+ *
  *     Register routes using {@link #registerRoute(String, NanoHTTPD.Method, String, GenericRouteHandler, Function)}
  *     and other methods in the {@link #onReady()} method.
  * </p>
@@ -117,6 +118,7 @@ public abstract class APIModule implements Listener {
      * @param uri The URI of this route in this module
      * @param handler A method to be called to process requests
      * @param converter A method to translate the handlers response to an HTTP response
+     * @param <T> A custom response type
      */
     protected <T> void registerRoute(String tName, NanoHTTPD.Method method, String uri, GenericRouteHandler<T> handler, Function<T, NanoHTTPD.Response> converter) {
         registerRouteHandler(
@@ -130,6 +132,7 @@ public abstract class APIModule implements Listener {
      * @see IWebsocket
      * @param tName The name of the route
      * @param uri The URI of this route in this module
+     * @param handler The handler for websocket events
      */
     protected void registerWebsocketRoute(String tName, String uri, IWebsocket handler) {
         registerRouteHandler(

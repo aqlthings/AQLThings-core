@@ -20,13 +20,9 @@ import java.util.Random;
 		name = "AQLLooting"
 )
 public class AQLLooting implements IModule {
-	
 	private Player playerKiller;
 
-	/**
-	 * Appel lors du meurtre (ou crime) d'une entité par un joueur
-	 * @param event
-	 */
+	// Appel lors du meurtre (ou crime) d'une entité par un joueur
 	@EventHandler
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		if (event.getEntity().getKiller() instanceof Player) {

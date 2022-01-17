@@ -13,17 +13,20 @@ import java.util.List;
 
 /**
  * AquilonThings module interface
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public interface IModule extends Listener, CommandExecutor, TabCompleter {
     /**
      * Module initialization method
+     * @param db A connector to access the database
+     * @throws Module.ModuleStartException When an error occurs during start-up
      * @return <code>true</code> on success, <code>false</code> otherwise
      */
     boolean onStartUp(DatabaseConnector db) throws Module.ModuleStartException;
 
     /**
      * Module stop method
+     * @throws Module.ModuleStopException When an error occurs during shut-down
      * @return <code>true</code> on success, <code>false</code> otherwise
      */
     boolean onStop() throws Module.ModuleStopException;

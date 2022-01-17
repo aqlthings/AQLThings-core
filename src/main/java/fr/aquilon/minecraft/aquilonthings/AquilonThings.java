@@ -353,6 +353,8 @@ public class AquilonThings extends JavaPlugin implements Listener {
 
 	/**
 	 * Alias for {@link #sendPluginMessage(PluginMessageRecipient, String, byte[])} with <code>target = null</code>
+	 * @param channel The channel
+	 * @param data The message
 	 */
 	public static void sendServerMessage(String channel, byte[] data) {
 		sendPluginMessage(null, channel, data);

@@ -17,7 +17,7 @@ import java.util.function.Function;
  * <p>
  *     This class provides some standard converters as static members.
  * </p>
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class RouteHandler<T> {
     private final GenericRouteHandler<T> handler;
@@ -105,6 +105,7 @@ public class RouteHandler<T> {
     public static final Function<String, NanoHTTPD.Response> TEXT = r -> RouteHandler.newTextResponse(NanoHTTPD.Response.Status.OK, r);
 
     /**
+     * @param contentType The MIME content-type
      * @return converter that stream the response with a custom content type
      */
     public static Function<InputStream, NanoHTTPD.Response> streaming(final String contentType) {

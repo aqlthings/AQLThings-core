@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  * <p>
  *     This class is iterable over all the markers in this group.
  * </p>
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class MarkerGroup implements Iterable<IMarker>, JSONExportable {
     private int id;

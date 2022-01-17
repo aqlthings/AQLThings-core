@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 /**
  * An AQLThings module providing a command to roll dices with bonuses/maluses
  * Note: This module depends on AQLCharacters
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 @AQLThingsModule(
 		name = "AQLRandoms",

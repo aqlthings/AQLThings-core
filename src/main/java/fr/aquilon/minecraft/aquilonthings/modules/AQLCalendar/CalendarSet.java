@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 /**
  * Holds a set of {@link CalendarElement}
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class CalendarSet<T extends CalendarElement> implements Iterable<T> {
     private final String type;

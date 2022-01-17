@@ -17,7 +17,7 @@ import org.json.JSONObject;
 /**
  * APIModule to expose AQLBabel data
  * TODO: Websocket event when selecting language
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class BabelHttpAPI extends APIModule {
     public static final String MODULE_NAME = "babel";

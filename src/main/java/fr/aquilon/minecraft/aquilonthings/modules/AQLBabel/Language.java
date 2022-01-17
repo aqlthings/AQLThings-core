@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /**
  * Represents a single language
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class Language implements JSONExportable {
     private final String key;

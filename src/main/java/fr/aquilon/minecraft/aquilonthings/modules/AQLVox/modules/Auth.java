@@ -3,6 +3,7 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
 import fi.iki.elonen.NanoHTTPD;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
@@ -198,11 +199,11 @@ public class Auth extends APIModule {
                 .withClaim("usr-id", user.getUniqueID());
         try {
             token = tokBuilder.sign(Algorithm.HMAC256(secret));
-        } catch (UnsupportedEncodingException e) {
+        } catch (JWTCreationException e) {
             getLogger().log(Level.WARNING, null, "Error when creating JWT :", e);
             throw new InternalServerErrorEx("Unable to create Token");
         }
-        getLogger().mDebug("Issued token '"+tokenID+"' to "+user.toString()+" for "+tokenDuration+" hours.");
+        getLogger().mDebug("Issued token '"+tokenID+"' to "+ user +" for "+tokenDuration+" hours.");
         JSONObject res = new JSONObject();
         res.put("token", token);
         JSONObject info = new JSONObject();

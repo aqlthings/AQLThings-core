@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 /**
  * Holds info about a calendar type
  * Created on 19/10/2020.
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class CalendarType {
     private final String name;

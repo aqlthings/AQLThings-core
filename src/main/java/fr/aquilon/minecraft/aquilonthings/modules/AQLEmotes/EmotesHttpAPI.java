@@ -13,7 +13,7 @@ import static fr.aquilon.minecraft.utils.JSONUtils.jsonDate;
 /**
  * APIModule to expose AQLEmotes data
  * TODO: Add routes to expose player emotes over HTTP API
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class EmotesHttpAPI extends APIModule {
     public static final String MODULE_NAME = "emotes";

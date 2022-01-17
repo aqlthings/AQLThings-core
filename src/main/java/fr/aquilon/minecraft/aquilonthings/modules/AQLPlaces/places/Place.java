@@ -25,8 +25,8 @@ public abstract class Place implements JSONExportable {
 	private int id;
 	private String name;
 	private String world;
-	private ArrayList<Player> activePlayerList;
-	private ArrayList<Trigger> triggers;
+	private final ArrayList<Player> activePlayerList;
+	private final ArrayList<Trigger> triggers;
 
 	public Place(int id, String name, String world) {
 		this.id = id;
@@ -72,7 +72,7 @@ public abstract class Place implements JSONExportable {
 
 	/**
 	 * Ajouter un trigger.
-	 * @param trigger
+	 * @param trigger The trigger to add
 	 */
 	public void addTrigger(Trigger trigger){
 		triggers.add(trigger);
@@ -80,7 +80,7 @@ public abstract class Place implements JSONExportable {
 	
 	/**
 	 * Supprimer un trigger.
-	 * @param trigger
+	 * @param trigger The trigger to remove
 	 */
 	public void removeTrigger(Trigger trigger){
 		triggers.remove(trigger);
@@ -98,9 +98,9 @@ public abstract class Place implements JSONExportable {
 	 * Retourne un trigger identifié par son nom.
 	 * @param name Nom du trigger
 	 * @return Objet trigger ou NULL si inconnu.
-	 * @todo use a map with names
 	 */
 	public Trigger getTrigger(String name){
+		// TODO: use a map with names
 		for(Trigger trigger : triggers){
 			if (trigger.getName().equals(name)){
 				return trigger;
@@ -108,9 +108,12 @@ public abstract class Place implements JSONExportable {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Exécuter les triggers actifs
+	 * @param m The {@link AQLPlaces} module
+	 * @param p The source {@link Player}
+	 * @param goingIn Whether the player is entering or leaving the place
 	 */
 	public void trigger(AQLPlaces m, Player p, boolean goingIn) {
 		for (Trigger trigger: triggers){
@@ -139,7 +142,7 @@ public abstract class Place implements JSONExportable {
 				stmt.addBatch();
 			} catch (SQLException e) {
                 log.mWarning("Unable to save field "+f+" for place "+id+"/"+name);
-                db.logException(e, sql);
+                DatabaseConnector.logException(e, sql);
 			}
 		}
 		try {

@@ -6,7 +6,7 @@ import java.util.Objects;
 
 /**
  * An input stream that is set to only provide a limited number of bytes.
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class LimitedInputStream extends InputStream {
     private final InputStream parent;

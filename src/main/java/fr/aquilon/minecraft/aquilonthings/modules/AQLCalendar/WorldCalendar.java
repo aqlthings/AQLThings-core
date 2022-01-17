@@ -10,7 +10,7 @@ import java.util.Objects;
 /**
  * Holds info about a world date and time
  * Created on 19/10/2020.
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class WorldCalendar implements JSONExportable {
     private final String worldName;

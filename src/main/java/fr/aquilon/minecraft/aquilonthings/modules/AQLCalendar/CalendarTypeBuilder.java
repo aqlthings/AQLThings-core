@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * Helper to build a calendar type
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class CalendarTypeBuilder {
     private final String type;

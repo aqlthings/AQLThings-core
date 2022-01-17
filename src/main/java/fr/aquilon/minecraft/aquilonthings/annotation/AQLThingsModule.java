@@ -5,32 +5,32 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Annotation to declare an AquilonThings module
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AQLThingsModule {
     /**
-     * The module name
+     * @return The module name
      */
     String name();
 
     /**
-     * The list of commands to register
+     * @return The list of commands to register
      */
     Cmd[] cmds() default {};
 
     /**
-     * The list of incomming packets to register
+     * @return The list of incomming packets to register
      */
     InPacket[] inPackets() default {};
 
     /**
-     * The list of outgoing packets to register
+     * @return The list of outgoing packets to register
      */
     OutPacket[] outPackets() default {};
 
     /**
-     * Whether this module is enabled or not (default <code>true</code>)
+     * @return Whether this module is enabled or not (default <code>true</code>)
      */
     boolean enabled() default true;
 }

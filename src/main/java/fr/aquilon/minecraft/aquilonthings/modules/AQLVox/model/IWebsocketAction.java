@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 /**
  * Represents a method to be called when a specific action is dispatched through a websocket
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 @FunctionalInterface
 public interface IWebsocketAction {

@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import java.util.Objects;
 
 /**
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class Rank implements JSONExportable {
     private final String name;

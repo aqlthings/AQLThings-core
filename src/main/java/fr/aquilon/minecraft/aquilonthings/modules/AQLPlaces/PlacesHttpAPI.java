@@ -16,7 +16,7 @@ import static fr.aquilon.minecraft.utils.JSONUtils.jsonDate;
 /**
  * APIModule to expose AQLPlaces data
  * TODO: Add routes to expose places over HTTP API
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class PlacesHttpAPI extends APIModule {
     public static final String MODULE_NAME = "places";

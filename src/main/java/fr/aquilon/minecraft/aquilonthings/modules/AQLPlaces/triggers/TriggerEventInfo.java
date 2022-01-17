@@ -27,13 +27,10 @@ public class TriggerEventInfo extends Trigger {
 		this.event_description = event_description;
 		this.event_url = event_url;	
 	}
-	
-	/**
-	 * 
-	 * @todo faire le système de cooldown (hasharray avec nom comme clef + heure au bon format)
-	 */
+
 	@Override
 	public boolean trigger(Player p, boolean goingIn) throws TriggerFailedException {
+		// TODO: faire le système de cooldown (hasharray avec nom comme clef + heure au bon format)
 		if(!goingIn) return false; 
 		try{
 			if(p.hasPermission(AQLPlaces.PERM_EVENT_INFO)){

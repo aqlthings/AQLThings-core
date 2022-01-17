@@ -1,0 +1,54 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'java'
+}
+
+group 'fr.aquilon.minecraft'
+version '3.1.0'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+javadoc.options.encoding = 'utf-8'
+compileJava.options.encoding = 'utf-8'
+compileTestJava.options.encoding = 'utf-8'
+
+repositories {
+    maven{ url = 'https://hub.spigotmc.org/nexus/content/repositories/public/' }
+    maven{ url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT'
+    compileOnly 'mysql:mysql-connector-java:8.0.25'
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+    implementation 'org.nanohttpd:nanohttpd-websocket:2.3.1'
+    implementation 'com.auth0:java-jwt:3.18.2'
+    compileOnly 'net.luckperms:api:5.3'
+    implementation 'org.json:json:20190722'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes(
+                "Specification-Title": project.name,
+                "Specification-Vendor": project.group,
+                "Specification-Version": "1", // We are version 1 of ourselves
+                "Implementation-Title": project.name,
+                "Implementation-Version": project.version,
+                "Implementation-Vendor" : project.group,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        )
+    }
+}
+
+shadowJar {
+    minimize()
+    archiveClassifier.set('')
+}

@@ -25,17 +25,19 @@ import java.util.List;
 import java.util.logging.Level;
 
 /**
- * TODO:
- * 	- Players > kick/ban/heal/kill
- * 	- load base URL from config (ex: aquilon-mc.fr/api/)
- * 	- user providers (Static users, DB users, Forum users)
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * The HTTP API module
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 @AQLThingsModule(
 		name = "AQLVox",
 		cmds = @Cmd(value = "api", desc = "Gestion de l'API HTTP")
 )
 public class AQLVox implements IModule {
+	/* TODO:
+	 * 	- Players > kick/ban/heal/kill
+	 * 	- load base URL from config (ex: aquilon-mc.fr/api/)
+	 * 	- user providers (Static users, DB users, Forum users)
+	 */
 	public static final String VERSION = "2.3.0";
 
 	public static final ModuleLogger LOGGER = ModuleLogger.get();

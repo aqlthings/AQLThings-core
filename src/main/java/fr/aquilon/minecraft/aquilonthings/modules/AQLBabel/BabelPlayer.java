@@ -13,7 +13,7 @@ import java.util.UUID;
 
 /**
  * Holds AQLBabel player info
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class BabelPlayer {
     private final UUID player;

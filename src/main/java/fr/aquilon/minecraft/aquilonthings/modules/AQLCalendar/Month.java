@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  * Holds info about a month
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class Month implements CalendarElement {
     private final CalendarSet<Month> monthSet;

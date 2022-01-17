@@ -19,7 +19,7 @@ import java.util.Objects;
 
 /**
  * A command from an AquilonThings module
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCommand {
     private final Module module;
@@ -107,6 +107,7 @@ public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCo
      * As of now Bukkit doesn't provide an API to register commands at runtime, so we have no choice but to use reflection.
      * @see <a href="https://bukkit.org/threads/tutorial-registering-commands-at-runtime.158461/">Bukkit topic</a>
      * @param command The command to register
+     * @throws CommandRegistrationException When unable to register the command
      */
     public static void registerCommand(ModuleCommand command) throws CommandRegistrationException {
         Objects.requireNonNull(command);

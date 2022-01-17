@@ -6,15 +6,15 @@ import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 public class PlaceFactory {
 
 	/**
-	 * Retourne l'objet place correspondant au type demandé.
-	 * @param db
-	 * @param id
-	 * @param type
-	 * @param name
-	 * @param log
-	 * @return place
+	 * @param db The database connector
+	 * @param id The place id
+	 * @param type The kind of place
+	 * @param name The name of the place
+	 * @param world The world this place is in
+	 * @param log A logger to send logs to
+	 * @return A place with the requested type.
 	 */
-	public static Place getPlace(DatabaseConnector db, int id, String type, String name, String world, ModuleLogger log){
+	public static Place getPlace(DatabaseConnector db, int id, String type, String name, String world, ModuleLogger log) {
 	    try {
 			Place p;
 			switch (PlaceTypeEnum.valueOf(type)){

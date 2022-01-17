@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 /**
  * Interface for a simple marker
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public interface IMarker extends JSONExportable {
     /**

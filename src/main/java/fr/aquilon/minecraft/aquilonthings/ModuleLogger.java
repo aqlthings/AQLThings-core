@@ -48,7 +48,7 @@ public class ModuleLogger {
 	
 	/**
 	 * Send debug level log entry
-	 * @param log
+	 * @param log Log message
 	 */
 	public void mDebug(String log){
 		if (!this.enabled || !this.debug) return;
@@ -57,7 +57,7 @@ public class ModuleLogger {
 	
 	/**
 	 * Send information level log entry
-	 * @param log
+	 * @param log Log message
 	 */
 	public void mInfo(String log){
 		if (!this.enabled) return;
@@ -66,7 +66,7 @@ public class ModuleLogger {
 	
 	/**
 	 * Send warning level log entry
-	 * @param log
+	 * @param log Log message
 	 */
 	public void mWarning(String log){
 		if (!this.enabled) return;
@@ -75,7 +75,7 @@ public class ModuleLogger {
 	
 	/**
 	 * Send severe level log entry
-	 * @param log
+	 * @param log Log message
 	 */
 	public void mSevere(String log){
 		if (!this.enabled) return;

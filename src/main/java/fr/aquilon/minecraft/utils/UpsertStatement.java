@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * A database statement to perform an Upsert (Update or Insert)
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class UpsertStatement {
     public final List<String> keys;
@@ -71,6 +71,7 @@ public class UpsertStatement {
 
     /**
      * @see PreparedStatement#addBatch()
+     * @throws SQLException on error
      */
     public void addBatch() throws SQLException {
         stmt.addBatch();
@@ -78,6 +79,8 @@ public class UpsertStatement {
 
     /**
      * @see PreparedStatement#executeBatch()
+     * @throws SQLException on error
+     * @return see {@link PreparedStatement#executeBatch()}
      */
     public int[] executeBatch() throws SQLException {
         return stmt.executeBatch();
@@ -85,6 +88,7 @@ public class UpsertStatement {
 
     /**
      * @see PreparedStatement#clearParameters()
+     * @throws SQLException on error
      */
     public void clearParameters() throws SQLException {
         stmt.clearParameters();
@@ -92,6 +96,8 @@ public class UpsertStatement {
 
     /**
      * @see PreparedStatement#executeUpdate()
+     * @throws SQLException on error
+     * @return see {@link PreparedStatement#executeUpdate()}
      */
     public int executeUpdate() throws SQLException {
         return stmt.executeUpdate();
@@ -99,6 +105,8 @@ public class UpsertStatement {
 
     /**
      * @see PreparedStatement#getGeneratedKeys()
+     * @throws SQLException on error
+     * @return see {@link PreparedStatement#getGeneratedKeys()}
      */
     public ResultSet getGeneratedKeys() throws SQLException {
         return stmt.getGeneratedKeys();
@@ -106,6 +114,7 @@ public class UpsertStatement {
 
     /**
      * @see PreparedStatement#cancel()
+     * @throws SQLException on error
      */
     public void cancel() throws SQLException {
         stmt.cancel();
@@ -113,6 +122,7 @@ public class UpsertStatement {
 
     /**
      * @see PreparedStatement#close()
+     * @throws SQLException on error
      */
     public void close() throws SQLException {
         stmt.close();

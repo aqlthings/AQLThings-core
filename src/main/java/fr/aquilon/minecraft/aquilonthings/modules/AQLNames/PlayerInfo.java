@@ -12,7 +12,7 @@ import java.util.UUID;
  * <p>
  *     This means, it's display name and description
  * </p>
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class PlayerInfo {
     private final UUID player;

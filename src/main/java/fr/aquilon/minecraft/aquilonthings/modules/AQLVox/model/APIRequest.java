@@ -109,7 +109,8 @@ public class APIRequest implements JSONExportable {
     }
 
     /**
-     * index starts at 1
+     * @param index Starts at 1
+     * @return The argument at the given index
      */
     public Arg getArg(int index) {
         return getArg(route.getArg(index).getName());
@@ -139,7 +140,8 @@ public class APIRequest implements JSONExportable {
     /**
      * Returns the files in the session body.
      * <p>
-     *     If verb is POST, content will be in <code>postData</code>,<br/>
+     *     If verb is POST, content will be in <code>postData</code>,
+     *
      *     Otherwise content will be saved to a temp file and it's path is in <code>content</code>
      * </p>
      * @return The files map

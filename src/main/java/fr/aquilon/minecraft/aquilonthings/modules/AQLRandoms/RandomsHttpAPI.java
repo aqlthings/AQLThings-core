@@ -12,7 +12,7 @@ import static fr.aquilon.minecraft.utils.JSONUtils.jsonDate;
 
 /**
  * APIModule to expose AQLRandoms data
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class RandomsHttpAPI extends APIModule {
     public static final String MODULE_NAME = "random";

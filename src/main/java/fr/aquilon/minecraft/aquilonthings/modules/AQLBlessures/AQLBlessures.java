@@ -42,7 +42,7 @@ import java.util.stream.Stream;
 
 /**
  * Module de gestion des blessures
- * @author BilliAlpha <billi.pamege.300@gmail.com>
+ * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 @AQLThingsModule(
         name = "AQLBlessures",

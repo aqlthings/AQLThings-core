@@ -15,21 +15,22 @@ public class DatabaseConnector {
 	public static final String LOG_PREFIX = AquilonThings.LOG_PREFIX+"[BDD] ";
 	public static final boolean DEBUG = false;
 
-	private String address;
-	private int port;
-	private String user;
-	private String password;
-	private String base;
-	private boolean secure;
+	private final String address;
+	private final int port;
+	private final String user;
+	private final String password;
+	private final String base;
+	private final boolean secure;
 	private static final Logger LOG = AquilonThings.LOGGER;
 
 	/**
 	 * Ce constructeur est utilisé par le framework pour définir un model de connexion.
-	 * @param address
-	 * @param port
-	 * @param user
-	 * @param password
-	 * @param base
+	 * @param address Hostname or IP address
+	 * @param port TCP port
+	 * @param user Username
+	 * @param password Password
+	 * @param base Database
+	 * @param secure Enable SSL/TLS or not
 	 */
 	public DatabaseConnector(String address, int port, String user,
                              String password, String base, boolean secure) {
@@ -106,8 +107,8 @@ public class DatabaseConnector {
 	/**
 	 * Permet d'envoyer une requête SQL à la base.
 	 * Cette requête DOIT retourner des données.
-	 *
-	 * @param sql
+	 * @param con An established database connection
+	 * @param sql The SQL request
 	 * @return ResultSet
 	 */
 	public ResultSet query(Connection con, String sql) {
@@ -127,6 +128,7 @@ public class DatabaseConnector {
 
 	/**
 	 * Permet de preparer une requête SQL.
+	 * @param con An established database connection
 	 * @param sql SQL request
 	 * @param options SQL request options
 	 * @return Statement
@@ -150,7 +152,9 @@ public class DatabaseConnector {
 	/**
 	 * Permet d'envoyer une requête SQL à la base.
 	 * Cette requête ne DOIT PAS retourner de donnée.
-	 * @param sql
+	 * @param con An established database connection
+	 * @param sql The SQL request
+	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean updateQuery(Connection con, String sql){
         if (con==null) {
@@ -204,6 +208,7 @@ public class DatabaseConnector {
 
 	/**
 	 * End transaction, print error, rollback if possible and disconnect
+	 * @param con An established database connection
 	 * @param ex Error
 	 */
 	public void endTransaction(Connection con, SQLException ex) {
@@ -212,7 +217,9 @@ public class DatabaseConnector {
 
 	/**
 	 * End transaction, print SQL error, rollback if possible and disconnect
+	 * @param con An established database connection
 	 * @param ex Error
+	 * @param sql The SQL request causing the error
 	 */
 	public void endTransaction(Connection con, SQLException ex, String sql) {
 		logException(ex, sql);
@@ -221,6 +228,7 @@ public class DatabaseConnector {
 
 	/**
 	 * End transaction, commits if necessary and disconnects
+	 * @param con An established database connection
 	 */
 	public void endTransaction(Connection con) {
 		endTransaction(con, true);
@@ -228,6 +236,7 @@ public class DatabaseConnector {
 
 	/**
 	 * End transaction, commit or rollback and disconnect
+	 * @param con An established database connection
 	 * @param commit Commit or rollback
 	 */
 	public void endTransaction(Connection con, boolean commit) {

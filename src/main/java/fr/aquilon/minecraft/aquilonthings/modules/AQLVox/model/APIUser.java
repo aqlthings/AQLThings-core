@@ -44,12 +44,15 @@ public abstract class APIUser implements JSONExportable {
     }
 
     /**
-     * Is the user allowed to create, list and delete Api keys
+     * @return Whether the user allowed creating, listing and deleting API keys
      */
     public boolean canManageApikeys() {
         return !isDefault() && source.canManageApikeys();
     }
 
+    /**
+     * @return Whether the user allowed API tokens
+     */
     public boolean canCreateToken() {
         return !isDefault() && source.canCreateToken();
     }
