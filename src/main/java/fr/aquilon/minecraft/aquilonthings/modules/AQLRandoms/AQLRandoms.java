@@ -67,34 +67,31 @@ public class AQLRandoms implements IModule {
 			priv = true;
 			args = args.replaceAll("privé","").replaceAll("secret","").trim();
 		}
-		if (args.length()>0 && !args.startsWith("+") && !args.startsWith("-")) {
-			char firstChar = args.charAt(0);
-			if (Character.isLetter(firstChar)) {
-				AQLCharacters characters = AquilonThings.instance.getModuleData(AQLCharacters.class);
-				if (characters == null) {
-					sender.sendMessage(ChatColor.YELLOW+"Valeur invalide !\n"+ChatColor.WHITE+usage);
-					return true;
-				}
-				CharacterDatabase charDB = characters.getCharacterDB();
-				Skill skill =  charDB.findSkillFromShorthand(args.substring(0,3));
-				args = args.substring(3).trim();
-				if (skill==null) {
-					sender.sendMessage(ChatColor.YELLOW+"Compétence inconnue !");
-					return true;
-				}
-				CharacterPlayer charP = charDB.findPlayer(uuid);
-				int charid = charP == null ? 0 : charP.getSelectedCharacter();
-				if (charid == 0) {
-					sender.sendMessage(ChatColor.YELLOW+"Aucun personnage séléctionné !");
-					return true;
-				}
-				charSkill = charDB.findCharacterSkillFromShorthand(charid, skill.getShorthand());
-				if (charSkill == null)
-					charSkill = new CharacterSkill(charid, skill.getCategory(), skill.getName())
-							.setLevel(0).setCategoryUnlocked(false);
-				if (charDB.findCharacterSkillCategory(charid, skill.getCategory()) != null)
-					charSkill.setCategoryUnlocked(true);
+		if (args.length()>0 && Character.isLetter(args.charAt(0))) {
+			AQLCharacters characters = AquilonThings.instance.getModuleData(AQLCharacters.class);
+			if (characters == null) {
+				sender.sendMessage(ChatColor.YELLOW+"Valeur invalide !\n"+ChatColor.WHITE+usage);
+				return true;
 			}
+			CharacterDatabase charDB = characters.getCharacterDB();
+			Skill skill =  charDB.findSkillFromShorthand(args.substring(0,3));
+			args = args.substring(3).trim();
+			if (skill==null) {
+				sender.sendMessage(ChatColor.YELLOW+"Compétence inconnue !");
+				return true;
+			}
+			CharacterPlayer charP = charDB.findPlayer(uuid);
+			int charid = charP == null ? 0 : charP.getSelectedCharacter();
+			if (charid == 0) {
+				sender.sendMessage(ChatColor.YELLOW+"Aucun personnage séléctionné !");
+				return true;
+			}
+			charSkill = charDB.findCharacterSkillFromShorthand(charid, skill.getShorthand());
+			if (charSkill == null)
+				charSkill = new CharacterSkill(charid, skill.getCategory(), skill.getName())
+						.setLevel(0).setCategoryUnlocked(false);
+			if (charDB.findCharacterSkillCategory(charid, skill.getCategory()) != null)
+				charSkill.setCategoryUnlocked(true);
 		}
 		if (args.length()>0) {
 			String[] arg_arr = args.replaceAll(" ","").split("(?=[\\+-])");

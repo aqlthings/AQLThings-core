@@ -1,6 +1,7 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.logging;
 
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 
 import java.io.File;
 import java.io.FileNotFoundException;

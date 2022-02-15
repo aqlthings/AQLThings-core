@@ -1,5 +1,6 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.logging;
 
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.IWebsocket;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.json.JSONObject;
 

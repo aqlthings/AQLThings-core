@@ -1,6 +1,5 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model;
 
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIForumUser;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import fr.aquilon.minecraft.utils.JSONUtils;
 import org.json.JSONObject;
@@ -14,7 +13,7 @@ import java.time.Instant;
  */
 public class StaffNote implements JSONExportable {
     private int charID;
-    private int author;
+    private String author;
     private Instant created;
     private Instant updated;
     private String note;
@@ -29,11 +28,11 @@ public class StaffNote implements JSONExportable {
         return charID;
     }
 
-    public int getAuthor() {
+    public String getAuthor() {
         return author;
     }
 
-    public StaffNote setAuthor(int author) {
+    public StaffNote setAuthor(String author) {
         this.author = author;
         return this;
     }
@@ -65,7 +64,7 @@ public class StaffNote implements JSONExportable {
     @Override
     public JSONObject toJSON() {
         JSONObject res = new JSONObject();
-        res.put("author", APIForumUser.fromUID(getAuthor(), null).toJSON());
+        res.put("author", getAuthor()); // FIXME: return user object
         res.put("created", JSONUtils.jsonDate(getCreated()));
         res.put("updated", JSONUtils.jsonDate(getUpdated()));
         res.put("note", getNote());

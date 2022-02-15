@@ -20,15 +20,14 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.Skill;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.SkillCategory;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.StaffNote;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model.TempCharacter;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIError;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.RedirectionEx;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIForumUser;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIRequest;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.IWebsocket;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIRequest;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIServer;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.IWebsocket;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONUtils;
 import org.bukkit.Bukkit;
@@ -89,7 +88,7 @@ public class CharactersHttpAPI extends APIModule {
     public static final String SUBERR_INVALID_STATUS = "216";
     public static final String SUBERR_INVALID_CHAR_SKILL_CATEGORY = "217";
     public static final String SUBERR_NO_EDIT_FOUND = "218";
-    public static final String SUBERR_INVALID_PLAYER = "301";
+    public static final String SUBERR_INVALID_USER = "301";
     public static final String SUBERR_FORBIDEN_USER_TYPE = "302";
     public static final String SUBERR_PLAYER_NOT_FOUND = "303";
     public static final String SUBERR_FORBIDEN_CATEGORY = "304";
@@ -246,7 +245,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         return pChar.toJSON(true, false);
@@ -261,27 +260,19 @@ public class CharactersHttpAPI extends APIModule {
         if (r.hasArg("player")) {
             uuid = r.getArg("player").getAsString();
         } else {
-            if (!(r.getUser() instanceof APIForumUser))
-                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_FORBIDEN_USER_TYPE,
-                        "Static user aren't allowed to update characters descriptions")
-                        .addData("code", 1);
-            APIForumUser user = (APIForumUser) r.getUser();
-            if (user.getMinecraftPseudo()==null)
-                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                        "Player has no minecraft account linked")
-                        .addData("code",2);
-            if (user.getMinecraftUUID()==null)
-                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                        "Unable to find minecraft account")
-                        .addData("code",3);
-            uuid = user.getMinecraftUUID().toString().replaceAll("-","");
+            UUID playerUUID = r.getUser().getPlayerUUID();
+            if (playerUUID == null)
+                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                        "User has no minecraft account linked")
+                        .addData("code",1);
+            uuid = playerUUID.toString().replaceAll("-","");
         }
         TempCharacter tChar = charDB.findTempCharacter(uuid);
         if (tChar==null)
             throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                     "No temporary character found for this user.");
         if (!tChar.userCanView(r.getUser()))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         return tChar.toJSON(true, true);
@@ -298,7 +289,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         try {
@@ -341,19 +332,12 @@ public class CharactersHttpAPI extends APIModule {
     }
 
     public JSONObject createCharacter(APIRequest r) throws APIException {
-        if (!(r.getUser() instanceof APIForumUser))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_FORBIDEN_USER_TYPE,
-                    "Static users aren't allowed to create characters"
-            ).addData("code", 1);
-        APIForumUser user = (APIForumUser) r.getUser();
-        if (user.getMinecraftPseudo()==null)
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Player has no minecraft account linked")
-                    .addData("code",2);
-        if (user.getMinecraftUUID()==null)
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Unable to find minecraft account")
-                    .addData("code",3);
+        APIUser user = r.getUser();
+        UUID playerUUID = user.getPlayerUUID();
+        if (playerUUID == null)
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                    "User has no minecraft account linked")
+                    .addData("code",1);
 
         JSONObject req = r.getJSONRequest();
         Character pChar = new Character(-1,null);
@@ -376,7 +360,7 @@ public class CharactersHttpAPI extends APIModule {
                         .addData("code",5);
             }
             // TODO: check user is ForumUser to avoid NPE and ClassCastEx
-            pChar.setPlayerUUID(((APIForumUser) user).getMinecraftUUID().toString().replaceAll("-",""));
+            pChar.setPlayerUUID(playerUUID.toString().replaceAll("-",""));
         }
         // -- first name
         // TODO: validate input (special chars and length)
@@ -489,25 +473,18 @@ public class CharactersHttpAPI extends APIModule {
                         .addData("max", maxEx.getMax());
         }
         List<CharacterEdit> edits = new ArrayList<>();
-        edits.add(CharacterEdit.Field.STATUS.getCharacterEdit(pChar.getID(), Instant.now(), user.getUID(), null, Character.Status.CREATED));
+        edits.add(CharacterEdit.Field.STATUS.getCharacterEdit(pChar.getID(), Instant.now(), user.getUniqueID(), null, Character.Status.CREATED));
         charDB.putCharacterEdits(edits);
         return pChar.toJSON(true, false);
     }
 
     public JSONObject updateCharacter(APIRequest r) throws APIException {
-        if (!(r.getUser() instanceof APIForumUser))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_FORBIDEN_USER_TYPE,
-                    "Static users aren't allowed to update characters"
-            ).addData("code", 1);
-        APIForumUser user = (APIForumUser) r.getUser();
-        if (user.getMinecraftPseudo()==null)
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Player has no minecraft account linked")
-                    .addData("code",2);
-        if (user.getMinecraftUUID()==null)
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Unable to find minecraft account")
-                    .addData("code",3);
+        APIUser user = r.getUser();
+        UUID playerUUID = user.getPlayerUUID();
+        if (playerUUID == null)
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                    "User has no minecraft account linked")
+                    .addData("code",1);
 
         JSONObject req = r.getJSONRequest();
         int charID = r.getArg("char-id").getAsInt();
@@ -516,7 +493,7 @@ public class CharactersHttpAPI extends APIModule {
             throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                     "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
 
@@ -577,7 +554,7 @@ public class CharactersHttpAPI extends APIModule {
                         "You are not allowed to set this status")
                         .addData("code", 2);
             }
-            edits.add(CharacterEdit.Field.STATUS.getCharacterEdit(charID, now, user.getUID(), oldStt, pChar.getStatus()));
+            edits.add(CharacterEdit.Field.STATUS.getCharacterEdit(charID, now, user.getUniqueID(), oldStt, pChar.getStatus()));
         }
 
         // TODO: validate input (special chars and length)
@@ -587,7 +564,7 @@ public class CharactersHttpAPI extends APIModule {
             pChar.setLastName(req.get("lastName").toString()); // Staff only, TODO: validate
         if (user.hasPerm(Character.PERM_STAFF_FIELDS_EDIT) && req.get("statusComment")!=null) {
             String newComment = req.get("statusComment").toString();
-            edits.add(CharacterEdit.Field.STATUS_COMMENT.getCharacterEdit(charID, now, user.getUID(), pChar.getStatusComment(), newComment));
+            edits.add(CharacterEdit.Field.STATUS_COMMENT.getCharacterEdit(charID, now, user.getUniqueID(), pChar.getStatusComment(), newComment));
             pChar.setStatusComment(newComment); // Staff only, TODO: validate
         }
         if (user.hasPerm(Character.PERM_STAFF_FIELDS_EDIT) && req.get("sex")!=null) try {
@@ -659,17 +636,17 @@ public class CharactersHttpAPI extends APIModule {
                         .addData("code", 2)
                         .addData("info", "Age is a number.");
             }
-            edits.add(CharacterEdit.Field.AGE.getCharacterEdit(charID, now, user.getUID(), pChar.getAge(), newAge));
+            edits.add(CharacterEdit.Field.AGE.getCharacterEdit(charID, now, user.getUniqueID(), pChar.getAge(), newAge));
             pChar.setAge(newAge);
         }
         if (req.has("occupation")) {
             String newOccup = req.get("occupation")!=null ? req.get("occupation").toString() : null;
-            edits.add(CharacterEdit.Field.OCCUPATION.getCharacterEdit(charID, now, user.getUID(), pChar.getOccupation(), newOccup));
+            edits.add(CharacterEdit.Field.OCCUPATION.getCharacterEdit(charID, now, user.getUniqueID(), pChar.getOccupation(), newOccup));
             pChar.setOccupation(newOccup); // TODO: validate (/!\ Null ?)
         }
         if (req.has("religion")) {
             String newRelig = req.get("religion")!=null ? req.get("religion").toString() : null;
-            edits.add(CharacterEdit.Field.RELIGION.getCharacterEdit(charID, now, user.getUID(), pChar.getReligion(), newRelig));
+            edits.add(CharacterEdit.Field.RELIGION.getCharacterEdit(charID, now, user.getUniqueID(), pChar.getReligion(), newRelig));
             pChar.setReligion(newRelig); // TODO: validate (/!\ Null ?)
         }
         if (!charDB.updateCharacter(pChar))
@@ -691,7 +668,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         try {
@@ -713,27 +690,20 @@ public class CharactersHttpAPI extends APIModule {
     }
 
     public JSONObject updateCharacterDescriptions(APIRequest r) throws APIException {
-        if (!(r.getUser() instanceof APIForumUser))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_FORBIDEN_USER_TYPE,
-                    "Static users aren't allowed to update characters descriptions"
-            ).addData("code", 1);
-        APIForumUser user = (APIForumUser) r.getUser();
+        APIUser user = r.getUser();
         JSONObject req = r.getJSONRequest();
-        if (user.getMinecraftPseudo()==null)
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Player has no minecraft account linked")
-                    .addData("code",2);
-        if (user.getMinecraftUUID()==null)
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Unable to find minecraft account")
-                    .addData("code",3);
+        UUID playerUUID = user.getPlayerUUID();
+        if (playerUUID == null)
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                    "User has no minecraft account linked")
+                    .addData("code",1);
         int charID = r.getArg("char-id").getAsInt();
         Character oldChar = charDB.findCharacterByID(charID);
         if (oldChar==null)
             throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                     "No such character.");
         if (!oldChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         try {
@@ -759,7 +729,7 @@ public class CharactersHttpAPI extends APIModule {
                         req.get("details").toString() :
                         oldChar.getDetails()
         );
-        if (!charDB.updateCharacterDescriptions(oldChar, newChar, user.getUID())) {
+        if (!charDB.updateCharacterDescriptions(oldChar, newChar, user.getUniqueID())) {
             throw new APIError(APIError.APIErrorEnum.ERROR_INTERNAL_ERROR, APIError.SUBERR_INTERNAL_ERROR,
                     "Error when updating character");
         }
@@ -786,7 +756,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         List<CharacterSkin> list = charDB.findCharacterSkins(charID);
@@ -815,7 +785,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         JSONObject req = r.getJSONRequest();
@@ -873,7 +843,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         String name = r.getArg("skin-name").getAsString();
@@ -894,7 +864,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         String name = r.getArg("skin-name").getAsString();
@@ -940,7 +910,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         String name = r.getArg("skin-name").getAsString();
@@ -989,7 +959,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No temporary character found for this player");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         JSONObject req = r.getJSONRequest();
@@ -1030,7 +1000,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No temporary character found for this player");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         if (!charDB.deleteTempCharacterSkin(pChar)) {
@@ -1054,7 +1024,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No temporary character found for this player");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         if (pChar.getSkin()==null)
@@ -1066,7 +1036,7 @@ public class CharactersHttpAPI extends APIModule {
     public JSONObject getCharacterStaffNotes(APIRequest r) throws APIException {
         APIUser user = r.getUser();
         if (!user.hasPerm(Character.PERM_STAFF_FIELDS_VIEW))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this information")
                     .addData("code", 1);
         int charID = r.getArg("char-id").getAsInt();
@@ -1074,7 +1044,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         List<StaffNote> list = charDB.findStaffNotes(charID);
@@ -1089,14 +1059,10 @@ public class CharactersHttpAPI extends APIModule {
     }
 
     public JSONObject addCharacterStaffNote(APIRequest r) throws APIException {
-        if (!(r.getUser() instanceof APIForumUser))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_FORBIDEN_USER_TYPE,
-                    "Static users aren't allowed to edit staff notes")
-                    .addData("code", 1);
-        APIForumUser user = (APIForumUser) r.getUser();
+        APIUser user = r.getUser();
         if (!user.hasPerm(Character.PERM_STAFF_FIELDS_EDIT))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Player can't edit this information")
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                    "User can't edit this information")
                     .addData("code", 1);
         int charID = r.getArg("char-id").getAsInt();
         JSONObject req = r.getJSONRequest();
@@ -1104,14 +1070,14 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Player can't edit this character")
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                    "User can't edit this character")
                     .addData("code", 1);
         if (req.get("note")==null)
             throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_EMPTY_REQUEST,
                     "Empty request.");
         String note = req.get("note").toString();
-        if (!charDB.putStaffNote(charID, user.getUID(), note))
+        if (!charDB.putStaffNote(charID, user.getUniqueID(), note))
             throw new APIError(APIError.APIErrorEnum.ERROR_INTERNAL_ERROR, APIError.SUBERR_INTERNAL_ERROR,
                     "Unable to save note.");
         List<StaffNote> list = charDB.findStaffNotes(charID);
@@ -1126,14 +1092,10 @@ public class CharactersHttpAPI extends APIModule {
     }
 
     public JSONObject updateCharacterStaffNote(APIRequest r) throws APIException {
-        if (!(r.getUser() instanceof APIForumUser))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_FORBIDEN_USER_TYPE,
-                    "Static users aren't allowed to edit staff notes")
-                    .addData("code", 1);
-        APIForumUser user = (APIForumUser) r.getUser();
+        APIUser user = r.getUser();
         if (!user.hasPerm(Character.PERM_STAFF_FIELDS_EDIT))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Player can't edit this information")
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                    "User can't edit this information")
                     .addData("code", 1);
         int charID = r.getArg("char-id").getAsInt();
         JSONObject req = r.getJSONRequest();
@@ -1141,8 +1103,8 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
-                    "Player can't edit this character")
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
+                    "User can't edit this character")
                     .addData("code", 1);
         if (req.get("note")==null)
             throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_EMPTY_REQUEST,
@@ -1152,7 +1114,7 @@ public class CharactersHttpAPI extends APIModule {
         if (charDB.findStaffNote(charID, noteTime)==null)
             throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_STAFF_NOTE_NOT_FOUND,
                     "No such note.");
-        if (!charDB.updateStaffNote(charID, noteTime, user.getUID(), note))
+        if (!charDB.updateStaffNote(charID, noteTime, user.getUniqueID(), note))
             throw new APIError(APIError.APIErrorEnum.ERROR_INTERNAL_ERROR, APIError.SUBERR_INTERNAL_ERROR,
                     "Unable to edit note.");
         List<StaffNote> list = charDB.findStaffNotes(charID);
@@ -1167,13 +1129,9 @@ public class CharactersHttpAPI extends APIModule {
     }
 
     public JSONObject deleteCharacterStaffNote(APIRequest r) throws APIException {
-        if (!(r.getUser() instanceof APIForumUser))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_FORBIDEN_USER_TYPE,
-                    "Static users aren't allowed to delete staff notes")
-                    .addData("code", 1);
-        APIForumUser user = (APIForumUser) r.getUser();
+        APIUser user = r.getUser();
         if (!user.hasPerm(Character.PERM_STAFF_FIELDS_EDIT))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this information")
                     .addData("code", 1);
         int charID = r.getArg("char-id").getAsInt();
@@ -1181,7 +1139,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         Instant noteTime = Instant.ofEpochMilli(r.getArg("time").getAsLong());
@@ -1213,7 +1171,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         if (!user.hasPerm(Character.PERM_VIEW_HISTORY))
@@ -1248,7 +1206,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         if (!user.hasPerm(Character.PERM_EDIT_HISTORY))
@@ -1291,7 +1249,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         if (!user.hasPerm(Character.PERM_VIEW_HISTORY))
@@ -1323,7 +1281,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         if (!user.hasPerm(Character.PERM_VIEW_HISTORY))
@@ -1378,7 +1336,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanView(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't access this character")
                     .addData("code", 1);
         JSONObject res = new JSONObject();
@@ -1414,7 +1372,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         if (pChar.getStatus() != Character.Status.CREATED && pChar.getStatus() != Character.Status.REJECTED &&
@@ -1483,7 +1441,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         if (pChar.getStatus() != Character.Status.CREATED && pChar.getStatus() != Character.Status.REJECTED &&
@@ -1525,7 +1483,7 @@ public class CharactersHttpAPI extends APIModule {
         if (pChar==null) throw new APIError(APIError.APIErrorEnum.ERROR_NOT_FOUND, SUBERR_CHARACTER_NOT_FOUND,
                 "No such character.");
         if (!pChar.userCanUse(user))
-            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+            throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                     "Player can't edit this character")
                     .addData("code", 1);
         if (pChar.getStatus() != Character.Status.CREATED && pChar.getStatus() != Character.Status.REJECTED &&
@@ -1561,10 +1519,10 @@ public class CharactersHttpAPI extends APIModule {
                     .addData("code", 1);
         String uuid = r.getArg("player").getAsString();
         List<Character> list = charDB.findPlayerCharacters(uuid);
-        if (user instanceof APIForumUser) {
-            APIForumUser userF = (APIForumUser) user;
-            if (!user.hasPerm(Character.PERM_VIEW_ALL_CHARACTERS) && !uuid.equals(userF.getMinecraftUUID().toString().replaceAll("-","")))
-                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+        UUID playerUUID = user.getPlayerUUID();
+        if (playerUUID != null) {
+            if (!user.hasPerm(Character.PERM_VIEW_ALL_CHARACTERS) && !uuid.equals(playerUUID.toString().replaceAll("-","")))
+                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                         "Not allowed to access this player")
                         .addData("code", 1);
         }
@@ -1591,10 +1549,10 @@ public class CharactersHttpAPI extends APIModule {
                     .addData("code", 1);
         String uuid = r.getArg("player").getAsString();
         CharacterPlayer player = charDB.findPlayer(uuid);
-        if (user instanceof APIForumUser) {
-            APIForumUser userF = (APIForumUser) user;
-            if (!user.hasPerm(Character.PERM_VIEW_ALL_CHARACTERS) && !uuid.equals(userF.getMinecraftUUID().toString().replaceAll("-","")))
-                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_PLAYER,
+        UUID playerUUID = user.getPlayerUUID();
+        if (playerUUID != null) {
+            if (!user.hasPerm(Character.PERM_VIEW_ALL_CHARACTERS) && !uuid.equals(playerUUID.toString().replaceAll("-","")))
+                throw new APIError(APIError.APIErrorEnum.ERROR_NOT_ALLOWED, SUBERR_INVALID_USER,
                         "Not allowed to access this player")
                         .addData("code", 1);
         }
@@ -1867,8 +1825,9 @@ public class CharactersHttpAPI extends APIModule {
         }
 
         // Query is the name of one of users chars
-        if (user instanceof APIForumUser) {
-            String uuid = ((APIForumUser) user).getMinecraftUUID().toString().replaceAll("-","");
+        UUID playerUUID = user.getPlayerUUID();
+        if (playerUUID != null) {
+            String uuid = playerUUID.toString().replaceAll("-","");
             List<Character> pChars = charDB.findPlayerCharacters(uuid);
             for (Character c : pChars) {
                 if (c.getName().toLowerCase().equals(query))

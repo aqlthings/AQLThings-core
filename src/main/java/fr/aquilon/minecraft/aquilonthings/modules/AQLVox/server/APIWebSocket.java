@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
@@ -6,6 +6,8 @@ import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.MissingPermissionEx;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.permissions.APIPermissions;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import fr.aquilon.minecraft.utils.JSONUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -103,7 +105,7 @@ public class APIWebSocket extends NanoWSD.WebSocket {
                 }
                 info.put("topics", subs);
                 info.put("name", user.getName());
-                info.put("perms", JSONUtils.jsonArray(user.getPermList().toArray()));
+                info.put("perms", JSONUtils.jsonArray(user.getPermissions().getPermList().toArray()));
                 sendMessage(topic, info);
             } else {
                 String action = data.get("action").toString();
@@ -137,12 +139,12 @@ public class APIWebSocket extends NanoWSD.WebSocket {
 
     public boolean hasTopic(String topic) {
         if (topic.startsWith("websocket.")) return true;
-        String[] hierarchy = APIUser.getPermHierarchy(topic);
+        String[] hierarchy = APIPermissions.getPermHierarchy(topic);
         for (String pHierarchy: hierarchy) {
             synchronized (topicsLock) {
                 for (String t : topics) {
                     if (t.equals("all")) return true;
-                    if (pHierarchy.matches(APIUser.getPermRegex(t))) return true;
+                    if (pHierarchy.matches(APIPermissions.getPermRegex(t))) return true;
                 }
             }
         }

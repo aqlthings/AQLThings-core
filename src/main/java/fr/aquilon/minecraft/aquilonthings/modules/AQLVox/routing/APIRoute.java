@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing;
 
 import fi.iki.elonen.NanoHTTPD;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.RouteRegistrationException;

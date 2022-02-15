@@ -1,7 +1,11 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing;
 
 import fi.iki.elonen.NanoHTTPD;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIRequest;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.HTMLResponse;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIServer;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.IWebsocket;
 import org.json.JSONObject;
 
 import java.io.InputStream;

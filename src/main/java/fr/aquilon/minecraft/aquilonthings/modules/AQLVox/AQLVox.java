@@ -5,10 +5,14 @@ import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APILogger;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIStaticUser;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIError;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.logging.APILogger;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIServer;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIDatabaseUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIForumUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIStaticUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.UserProviderRegistry;
 import fr.aquilon.minecraft.aquilonthings.modules.IModule;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
@@ -22,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 
 /**
@@ -36,9 +41,9 @@ public class AQLVox implements IModule {
 	/* TODO:
 	 * 	- Players > kick/ban/heal/kill
 	 * 	- load base URL from config (ex: aquilon-mc.fr/api/)
-	 * 	- user providers (Static users, DB users, Forum users)
+	 * 	- auth method registry
 	 */
-	public static final String VERSION = "2.3.0";
+	public static final String VERSION = "2.4.0";
 
 	public static final ModuleLogger LOGGER = ModuleLogger.get();
 
@@ -49,10 +54,11 @@ public class AQLVox implements IModule {
 
 	public static AQLVox instance;
 
+	private DatabaseConnector db;
 	private APILogger apiLogger;
 	private APIServer server = null;
 	private FileConfiguration config;
-	private HashMap<String, APIStaticUser> staticUsers;
+	private final HashMap<String, APIStaticUser> staticUsers;
 	private APIStaticUser defaultUser;
 
 	public AQLVox() {
@@ -70,6 +76,7 @@ public class AQLVox implements IModule {
 	@Override
 	public boolean onStartUp(DatabaseConnector db) {
 		if (!init()) return false;
+		this.db = db;
 		int port = config.getInt("port", DEFAULT_PORT);
 		try {
 			this.server = new APIServer(port, this);
@@ -162,7 +169,7 @@ public class AQLVox implements IModule {
 				}
 				sender.sendMessage(ChatColor.YELLOW+"API User Permissions: ("+ChatColor.BLUE+args[1]+ChatColor.YELLOW+")");
 				String msg = "";
-				for (String u: usr.getPermList()) {
+				for (String u: usr.getPermissions().getPermList()) {
 					msg += ChatColor.WHITE + u + ChatColor.YELLOW + ", ";
 				}
 				if (!msg.isEmpty()) sender.sendMessage(ChatColor.YELLOW + "> " + msg.substring(0, msg.length()-2));
@@ -194,15 +201,27 @@ public class AQLVox implements IModule {
 
 	private void loadStaticUsers() throws InvalidConfigurationException {
 		staticUsers.clear();
-		ConfigurationSection usersConfig = config.getConfigurationSection("auth.standard");
-		if (usersConfig==null) throw new InvalidConfigurationException("Config has to contain a staticUsers section.");
+		ConfigurationSection usersConfig = config.getConfigurationSection("auth.static");
+		if (usersConfig==null) throw new InvalidConfigurationException("Config has static users section: auth.static");
 		for (String user: usersConfig.getKeys(false)) {
-			if (!user.equals("default")) {
-				LOGGER.mDebug("Adding standard user : "+user);
-				staticUsers.put(user, APIStaticUser.fromConfig(usersConfig.getConfigurationSection(user)));
-			}
+			staticUsers.put(user, APIStaticUser.fromConfig(usersConfig.getConfigurationSection(user)));
 		}
-		defaultUser = APIStaticUser.fromConfig(config.getConfigurationSection("auth.standard.default"));
+		LOGGER.mDebug("Static users: "+String.join(", ", staticUsers.keySet()));
+		defaultUser = APIStaticUser.fromConfig(config.getConfigurationSection("auth.default"));
+	}
+
+	private void loadUserProviders() {
+		UserProviderRegistry registry = UserProviderRegistry.getInstance();
+		// TODO: Dispatch an event to allow other modules/plugins to register providers
+		//registry.register(APIForumUser.class.getSimpleName(),
+		//		(id) -> APIForumUser.fromUID(Integer.parseInt(id), null));
+		registry.register(APIDatabaseUser.class.getSimpleName(), APIDatabaseUser::findUser);
+	}
+
+	public APIUser getUser(String userType, String userID) throws APIError {
+		if (Objects.equals(userType, APIStaticUser.class.getSimpleName()))
+			return getStaticUser(userID);
+		return UserProviderRegistry.getInstance().getUser(userType, userID);
 	}
 
 	/**
@@ -228,6 +247,8 @@ public class AQLVox implements IModule {
 			LOGGER.log(Level.INFO, null, "Exception: ",ex);
 			return false;
 		}
+
+		loadUserProviders();
 
 		try {
 			loadStaticUsers();
@@ -265,5 +286,9 @@ public class AQLVox implements IModule {
 
 	public List<String> getConfigArray(String s) {
 		return config.getStringList(s);
+	}
+
+	public DatabaseConnector getDatabaseConnector() {
+		return db;
 	}
 }

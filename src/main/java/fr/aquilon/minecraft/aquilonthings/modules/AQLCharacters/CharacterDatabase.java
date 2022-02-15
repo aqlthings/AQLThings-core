@@ -1509,7 +1509,7 @@ public class CharacterDatabase {
         return true;
     }
 
-    public boolean updateCharacterDescriptions(Character oldChar, Character newChar, int author) {
+    public boolean updateCharacterDescriptions(Character oldChar, Character newChar, String author) {
         if (oldChar.getID()!=newChar.getID()) return false;
         Connection con = db.startTransaction();
         String sqlDesc = "UPDATE aqlcharacters_chars " +
@@ -1551,7 +1551,7 @@ public class CharacterDatabase {
                 res = new CharacterEdit(charID,
                         CharacterEdit.Field.valueOf(rs.getString("field")),
                         rs.getTimestamp("updated").toInstant(),
-                        rs.getInt("author")
+                        rs.getString("author")
                 ).setStatus(rs.getString("status"))
                 .setComment(rs.getString("comment"))
                 .setDiff(rs.getString("diff"));
@@ -1585,7 +1585,7 @@ public class CharacterDatabase {
                 res.add(new CharacterEdit(charID,
                                 CharacterEdit.Field.valueOf(rs.getString("field")),
                                 rs.getTimestamp("updated").toInstant(),
-                                rs.getInt("author")
+                                rs.getString("author")
                         ).setStatus(rs.getString("status"))
                         .setComment(rs.getString("comment"))
                         .setDiff(rs.getString("diff"))
@@ -1621,7 +1621,7 @@ public class CharacterDatabase {
                 CharacterEdit edit = new CharacterEdit(cID,
                         CharacterEdit.Field.valueOf(rs.getString("field")),
                         rs.getTimestamp("updated").toInstant(),
-                        rs.getInt("author")
+                        rs.getString("author")
                 ).setStatus(rs.getString("status"))
                         .setComment(rs.getString("comment"));
                 try {
@@ -1659,7 +1659,7 @@ public class CharacterDatabase {
                 CharacterEdit edit = new CharacterEdit(cID,
                         CharacterEdit.Field.valueOf(rs.getString("field")),
                         rs.getTimestamp("updated").toInstant(),
-                        rs.getInt("author")
+                        rs.getString("author")
                 ).setStatus(rs.getString("status"))
                 .setComment(rs.getString("comment"));
                 try {
@@ -1691,7 +1691,7 @@ public class CharacterDatabase {
                 stmt.setInt(1, edit.getCharID());
                 stmt.setString(2, edit.getField().name());
                 stmt.setTimestamp(3, Timestamp.from(edit.getUpdated()));
-                stmt.setInt(4, edit.getAuthor());
+                stmt.setString(4, edit.getAuthor());
                 stmt.setString(5, edit.getDiff());
                 stmt.addBatch();
             }
@@ -1745,7 +1745,7 @@ public class CharacterDatabase {
             list = new ArrayList<>();
             while (rs.next()) {
                 list.add(new StaffNote(rs.getInt("charid"), rs.getTimestamp("created").toInstant())
-                        .setAuthor(rs.getInt("author"))
+                        .setAuthor(rs.getString("author"))
                         .setUpdated(rs.getTimestamp("updated").toInstant())
                         .setNote(rs.getString("note"))
                 );
@@ -1770,7 +1770,7 @@ public class CharacterDatabase {
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 res = new StaffNote(rs.getInt("charid"), rs.getTimestamp("created").toInstant())
-                        .setAuthor(rs.getInt("author"))
+                        .setAuthor(rs.getString("author"))
                         .setUpdated(rs.getTimestamp("updated").toInstant())
                         .setNote(rs.getString("note"));
             }
@@ -1782,7 +1782,7 @@ public class CharacterDatabase {
         return res;
     }
 
-    public boolean putStaffNote(int charID, int author, String note) {
+    public boolean putStaffNote(int charID, String author, String note) {
         Connection con = db.startTransaction();
         String sql = "INSERT INTO aqlcharacters_char_staff_notes " +
                 "(charid, author, created, note) " +
@@ -1790,7 +1790,7 @@ public class CharacterDatabase {
         try {
             PreparedStatement stmt = db.prepare(con, sql);
             stmt.setInt(1, charID);
-            stmt.setInt(2, author);
+            stmt.setString(2, author);
             stmt.setTimestamp(3, Timestamp.from(Instant.now()));
             stmt.setString(4, note);
             stmt.executeUpdate();
@@ -1802,14 +1802,14 @@ public class CharacterDatabase {
         return true;
     }
 
-    public boolean updateStaffNote(int charID, Instant noteCreationTime, int author, String note) {
+    public boolean updateStaffNote(int charID, Instant noteCreationTime, String author, String note) {
         Connection con = db.startTransaction();
         String sql = "UPDATE aqlcharacters_char_staff_notes " +
                 "SET author = ?, note = ?, updated = ?" +
                 "WHERE charid = ? AND created = ?";
         try {
             PreparedStatement stmt = db.prepare(con, sql);
-            stmt.setInt(1, author);
+            stmt.setString(1, author);
             stmt.setString(2, note);
             stmt.setTimestamp(3, Timestamp.from(Instant.now()));
             stmt.setInt(4, charID);

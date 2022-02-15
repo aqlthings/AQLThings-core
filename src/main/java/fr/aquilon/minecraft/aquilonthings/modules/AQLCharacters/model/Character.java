@@ -1,8 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model;
 
 import fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.CharactersHttpAPI;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIForumUser;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import org.json.JSONObject;
 
 import java.util.List;
@@ -234,6 +233,7 @@ public class Character extends AbstractCharacter {
         return res;
     }
 
+    @Override
     public boolean userCanView(APIUser u) {
         if (u.hasPerm(PERM_VIEW_ALL_CHARACTERS)) return true;
         if (isSharedCharacter()) {
@@ -242,17 +242,13 @@ public class Character extends AbstractCharacter {
         return userIsOwner(u);
     }
 
+    @Override
     public boolean userCanUse(APIUser u) {
         if (u.hasPerm(PERM_EDIT_ALL_CHARACTERS)) return true;
         if (isSharedCharacter()) {
             return u.hasPerm(PERM_USE_CHAR_CATEGORY.replace("{{CATEGORY}}",getCategory()));
         }
         return userIsOwner(u);
-    }
-
-    public boolean userIsOwner(APIUser u) {
-        if (!(u instanceof APIForumUser)) return false;
-        return getPlayerUUIDObject().equals(((APIForumUser) u).getMinecraftUUID());
     }
 
     public enum Status {

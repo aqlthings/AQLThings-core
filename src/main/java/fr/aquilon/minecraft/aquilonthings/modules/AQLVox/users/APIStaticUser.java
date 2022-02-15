@@ -1,9 +1,11 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users;
 
 import com.google.common.hash.Hashing;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.InvalidAuthEx;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.permissions.APIPermissions;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIRequest;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.nio.charset.StandardCharsets;
@@ -15,17 +17,24 @@ import java.util.List;
  * @author Billi
  */
 public class APIStaticUser extends APIUser {
-    private String pass;
+    private final String pass;
+    private final APIPermissions perms;
 
     public APIStaticUser(String name, String pass) {
         super(name);
         this.pass = pass;
+        this.perms = APIPermissions.create();
     }
 
     public boolean checkKey(String key, String method) {
         long time = (System.currentTimeMillis()/1000) >> 5;
         String expected = Hashing.sha256().hashString(getName()+method+pass+time, StandardCharsets.UTF_8).toString();
         return expected.equals(key);
+    }
+
+    @Override
+    public APIPermissions getPermissions() {
+        return perms;
     }
 
     @Override
@@ -56,9 +65,10 @@ public class APIStaticUser extends APIUser {
     public static APIStaticUser fromConfig(ConfigurationSection data) {
         String user = data.getName();
         APIStaticUser usr = new APIStaticUser(user, data.getString("password"));
-        List<String> defaultPerms = AQLVox.instance.getConfigArray("auth.standard.default.permissions");
-        usr.addAllPerms(defaultPerms); // default permissions
-        usr.addAllPerms(data.getStringList("permissions"));
+        List<String> defaultPerms = AQLVox.instance.getConfigArray("auth.default.permissions");
+        usr.getPermissions()
+                .addAllPerms(defaultPerms) // default permissions
+                .addAllPerms(data.getStringList("permissions"));
         return usr;
     }
 }

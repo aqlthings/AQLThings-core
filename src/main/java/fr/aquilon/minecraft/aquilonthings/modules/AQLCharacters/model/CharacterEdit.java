@@ -1,6 +1,5 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model;
 
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIForumUser;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import fr.aquilon.minecraft.utils.JSONUtils;
 import name.fraser.neil.plaintext.diff_match_patch;
@@ -20,12 +19,12 @@ public class CharacterEdit implements JSONExportable {
     private int charID;
     private Field field;
     private Instant updated;
-    private int author;
+    private String author;
     private String status;
     private String comment;
     private String diff;
 
-    public CharacterEdit(int charID, Field field, Instant updated, int author) {
+    public CharacterEdit(int charID, Field field, Instant updated, String author) {
         this.charID = charID;
         this.field = field;
         this.updated = updated;
@@ -45,7 +44,7 @@ public class CharacterEdit implements JSONExportable {
         return updated;
     }
 
-    public int getAuthor() {
+    public String getAuthor() {
         return author;
     }
 
@@ -84,7 +83,7 @@ public class CharacterEdit implements JSONExportable {
     @Override
     public JSONObject toJSON() {
         JSONObject res = new JSONObject();
-        res.put("author", APIForumUser.fromUID(author, null).toJSON());
+        res.put("author", author); // FIXME: return user object
         res.put("updated", JSONUtils.jsonDate(updated));
         res.put("status", status);
         res.put("comment", comment);
@@ -158,12 +157,12 @@ public class CharacterEdit implements JSONExportable {
         DESC_STORY,
         DESC_DETAILS;
 
-        public CharacterEdit getCharacterEdit(Character oldChar, Character newChar, Instant updated, int author) {
+        public CharacterEdit getCharacterEdit(Character oldChar, Character newChar, Instant updated, String author) {
             return new CharacterEdit(oldChar.getID(), this, updated, author)
                     .setDiff(getField(oldChar), getField(newChar));
         }
 
-        public CharacterEdit getCharacterEdit(int charID, Instant updated, int author, Object oldValue, Object newValue) {
+        public CharacterEdit getCharacterEdit(int charID, Instant updated, String author, Object oldValue, Object newValue) {
             return new CharacterEdit(charID, this, updated, author)
                     .setDiff(getDiff(oldValue, newValue));
         }

@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -10,6 +10,7 @@ import fi.iki.elonen.NanoWSD;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIError;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
@@ -17,11 +18,17 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.InternalServ
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.InvalidAuthEx;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.ModuleNotFoundEx;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.NotFoundEx;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.logging.APILogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.About;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Auth;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Players;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Server;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.modules.Websocket;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.APIRoute;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.RouteHandler;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIForumUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIStaticUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -241,7 +248,7 @@ public class APIServer extends NanoWSD {
                         .addData("code", 1);
             if (auth[0].equals("Basic")) {
                 /* - PASSWORD - */
-                // TODO: b64 decode, check static users, and phpbb_db if not found
+                // TODO: b64 decode, username should contains a type prefix, otherwise check static users
                 comments.add("authType: Password");
                 //AQLVox.LOGGER.mDebug("Authenticated user '"+username+"' from password");
             } else if (auth[0].equals("Bearer") && auth[1].contains(".")) {
@@ -261,24 +268,17 @@ public class APIServer extends NanoWSD {
                 comments.add("authType: Token");
                 comments.add("tokenID: "+tokenID);
                 //AQLVox.LOGGER.mDebug("Authenticated token '"+tokenID+"'");
-                if (userType.equals(APIForumUser.class.getSimpleName())) {
-                    try {
-                        String customGroups = req.getHeaders().getOrDefault("x-api-set-groups",null);
-                        APIUser usr = APIForumUser.fromUID(Integer.parseInt(userID), customGroups);
-                        if (usr==null)
-                            throw new APIError(APIError.APIErrorEnum.ERROR_INTERNAL_ERROR, APIError.SUBERR_INTERNAL_ERROR, "Error looking up user");
-                        usr.setSource(APIUser.Source.TOKEN);
-                        return usr;
-                    } catch (NumberFormatException e) {
-                        throw new APIError(APIError.APIErrorEnum.ERROR_INVALID_AUTH, APIError.SUBERR_INVALID_TOKEN, "Invalid auth token")
-                                .addData("info", "Invalid user id, number expected");
-                    }
-                } else if (userType.equals(APIStaticUser.class.getSimpleName())) {
-                    return getStaticUserFromName(userID).setSource(APIUser.Source.TOKEN);
-                } else {
-                    throw new APIError(APIError.APIErrorEnum.ERROR_INVALID_AUTH, APIError.SUBERR_INVALID_TOKEN, "Invalid auth token")
-                            .addData("info", "No such user type");
-                }
+                APIUser usr = AQLVox.instance.getUser(userType, userID);
+                if (usr==null)
+                    throw new APIError(
+                            APIError.APIErrorEnum.ERROR_INTERNAL_ERROR,
+                            APIError.SUBERR_INTERNAL_ERROR,
+                            "Error looking up user")
+                            .addData("userType", userType)
+                            .addData("userId", userID)
+                            .addData("tokenId", tokenID);
+                usr.setSource(APIUser.Source.TOKEN);
+                return usr;
             } else if (auth[0].equals("Bearer")) {
                 /* - API KEY - */
                 DatabaseConnector db = AquilonThings.instance.getNewDatabaseConnector();
@@ -299,49 +299,54 @@ public class APIServer extends NanoWSD {
                     comments.add("authType: ApiKey");
                     comments.add("apikeyID: "+apiKeyID);
                     //AQLVox.LOGGER.mDebug("Authenticated api key '"+apiKeyID+"'");
-                    APIUser usr;
-                    if (userType.equals(APIStaticUser.class.getSimpleName())) { // APIStaticUser
-                        usr = data.getStaticUser(userID);
-                        if (usr==null) { // TODO: remove apikey from db
-                            throw new APIError(APIError.APIErrorEnum.ERROR_INVALID_AUTH, APIError.SUBERR_INVALID_APIKEY, "Expired api key")
-                                    .addData("info", "user no longer exists").addData("code", 1);
-                        }
-                        usr.setSource(APIUser.Source.API_KEY);
-                        if (perms!=null) usr.clearAllPerms().addAllPerms(perms);
-                    } else if (userType.equals(APIForumUser.class.getSimpleName())) { // APIForumUser
-                        String customGroups = req.getHeaders().getOrDefault("x-api-set-groups",null);
-                        usr = APIForumUser.fromUID(Integer.parseInt(userID), customGroups);
-                        if (usr==null) { // TODO: remove apikey from db
-                            throw new APIError(APIError.APIErrorEnum.ERROR_INTERNAL_ERROR, APIError.SUBERR_INTERNAL_ERROR, "Error looking up user");
-                        }
-                        usr.setSource(APIUser.Source.API_KEY);
-                        if (perms!=null) usr.clearAllPerms().addAllPerms(perms);
-                    } else {
-                        // TODO: remove apikey from db
-                        throw new APIError(APIError.APIErrorEnum.ERROR_INVALID_AUTH, APIError.SUBERR_INVALID_APIKEY, "Invalid api key")
-                                .addData("info", "key error, invalid data").addData("code", 2);
+                    APIUser usr = data.getUser(userType, userID);
+                    if (usr==null) { // TODO: remove apikey from db
+                        throw new APIError(
+                                APIError.APIErrorEnum.ERROR_INVALID_AUTH,
+                                APIError.SUBERR_INVALID_APIKEY,
+                                "Expired api key")
+                                .addData("info", "user no longer exists")
+                                .addData("code", 1);
                     }
+                    usr.setSource(APIUser.Source.API_KEY);
+                    if (perms!=null) usr.getPermissions().clearAllPerms().addAllPerms(perms);
                     return usr;
                 } catch (SQLException e) {
                     db.endTransaction(con, e);
-                    throw new APIError(APIError.APIErrorEnum.ERROR_INTERNAL_ERROR, APIError.SUBERR_INTERNAL_ERROR, "Error when looking up api key");
+                    throw new APIError(
+                            APIError.APIErrorEnum.ERROR_INTERNAL_ERROR,
+                            APIError.SUBERR_INTERNAL_ERROR,
+                            "Error while looking up api key");
                 }
             } else {
-                throw new APIError(APIError.APIErrorEnum.ERROR_INVALID_AUTH, APIError.SUBERR_INVALID_AUTH_MODE, "Unsupported Authorization type.")
-                        .addData("code", 1);
+                // TODO: Add 'AQLVox' auth scheme
+                // Fields are separated by ';'
+                // Allowed fields:
+                //   - method (default: 'password')
+                //   - usertype (required except for token/apikey)
+                //   - userid (required except for token/apikey)
+                //   - value (optional, required for token/apikey)
+
+                throw new APIError(
+                        APIError.APIErrorEnum.ERROR_INVALID_AUTH,
+                        APIError.SUBERR_INVALID_AUTH_MODE,
+                        "Unsupported Authorization type.");
             }
         }
 
         /* - STATIC USER KEY - */ // Should we keep this auth method ? Send as basic auth ?
         String userName = req.getHeaders().getOrDefault("x-api-user",null);
         if (userName==null) {
-            List<String> userHeader = req.getParameters().getOrDefault("user", null);
-            if (userHeader!=null && userHeader.size()>0) userName = userHeader.get(0);
+            List<String> userQueryParam = req.getParameters().getOrDefault("user", null);
+            if (userQueryParam!=null && userQueryParam.size()>0) userName = userQueryParam.get(0);
         }
         if (userName!=null) {
             comments.add("authType: SigningKey");
-            APIStaticUser usr = getStaticUserFromName(userName);
-            if (usr==null) throw new APIError(APIError.APIErrorEnum.ERROR_INVALID_AUTH, APIError.SUBERR_INVALID_STATIC_USER, "Invalid user");
+            APIStaticUser usr = data.getStaticUser(userName);
+            if (usr==null) throw new APIError(
+                    APIError.APIErrorEnum.ERROR_INVALID_AUTH,
+                    APIError.SUBERR_INVALID_STATIC_USER,
+                    "Invalid user");
             return usr.setSource(APIUser.Source.SIGNING_KEY);
         }
 
@@ -371,13 +376,6 @@ public class APIServer extends NanoWSD {
         return data.getDefaultUser();
     }
 
-    public APIStaticUser getStaticUserFromName(String userName) {
-        if (userName!=null && !userName.equals("default")) {
-            return data.getStaticUser(userName);
-        }
-        return data.getDefaultUser();
-    }
-
     public void start() {
         loadModules();
         try {
@@ -398,7 +396,7 @@ public class APIServer extends NanoWSD {
             for (APIWebSocket client : ws.getWsClients()) {
                 try {
                     client.close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "Server shutting down.", false);
-                } catch (IOException e) {}
+                } catch (IOException ignored) {}
             }
         }
         super.stop();

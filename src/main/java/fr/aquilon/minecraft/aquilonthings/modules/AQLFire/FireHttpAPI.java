@@ -2,9 +2,9 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLFire;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.IWebsocket;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.APIModule;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIServer;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.IWebsocket;
 import org.bukkit.event.EventHandler;
 import org.json.JSONObject;
 

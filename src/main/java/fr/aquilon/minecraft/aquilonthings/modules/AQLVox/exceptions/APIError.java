@@ -1,7 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions;
 
 import fi.iki.elonen.NanoHTTPD;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.RouteHandler;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.RouteHandler;
 import org.json.JSONObject;
 
 /**

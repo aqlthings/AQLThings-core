@@ -28,6 +28,7 @@ import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +75,27 @@ public class Utils {
         String rankName = permUser.getPrimaryGroup();
         FileConfiguration config = AquilonThings.instance.getConfig();
         return Rank.getRank(rankName, config.getConfigurationSection("players.ranks."+rankName));
+    }
+
+    public static String bytesToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString();
+    }
+
+    public static byte[] hexStringToBytes(String hex) {
+        if (hex.length() % 2 != 0)
+            throw new IllegalArgumentException("Invalid bytes string length");
+        int length = hex.length()/2;
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; i++) {
+            int x = 2*i;
+            String b = hex.substring(x, x+1);
+            bytes[i] = Byte.parseByte(b, 16);
+        }
+        return bytes;
     }
 
     /**

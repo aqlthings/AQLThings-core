@@ -1,6 +1,6 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions;
 
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 
 /**
  * Created by Billi on 18/04/2017.

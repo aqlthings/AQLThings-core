@@ -1,10 +1,19 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox;
 
 import fi.iki.elonen.NanoHTTPD;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.ModuleNotFoundEx;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.NotFoundEx;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIRequest;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.APIRoute;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.GenericRouteHandler;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.HTMLRouteHandler;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.JSONRouteHandler;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.RawRouteHandler;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.routing.RouteHandler;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIServer;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.IWebsocket;
 import org.bukkit.event.Listener;
 
 import java.util.ArrayList;

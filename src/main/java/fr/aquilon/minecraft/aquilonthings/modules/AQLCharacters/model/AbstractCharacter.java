@@ -1,7 +1,6 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model;
 
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIForumUser;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import org.bukkit.Bukkit;
@@ -118,7 +117,8 @@ public abstract class AbstractCharacter implements JSONExportable {
     }
 
     public boolean userIsOwner(APIUser u) {
-        if (!(u instanceof APIForumUser)) return false;
-        return getPlayerUUIDObject().equals(((APIForumUser) u).getMinecraftUUID());
+        UUID playerUUID = u.getPlayerUUID();
+        if (playerUUID == null) return false;
+        return getPlayerUUIDObject().equals(playerUUID);
     }
 }

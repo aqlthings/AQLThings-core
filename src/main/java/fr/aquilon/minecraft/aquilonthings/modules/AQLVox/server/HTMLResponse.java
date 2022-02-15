@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server;
 
 import com.google.common.base.Strings;
 import fi.iki.elonen.NanoHTTPD;

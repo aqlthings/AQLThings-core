@@ -3,16 +3,15 @@ package fr.aquilon.minecraft.aquilonthings.modules.AQLChat;
 import fi.iki.elonen.NanoHTTPD;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.ModuleLogger;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.APIModule;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIError;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.MissingPermissionEx;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIForumUser;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIRequest;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIWebSocket;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.IWebsocket;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIRequest;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIServer;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIWebSocket;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.IWebsocket;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import fr.aquilon.minecraft.utils.InvalidArgumentEx;
 import fr.aquilon.minecraft.utils.JSONUtils;
 import fr.aquilon.minecraft.utils.MinecraftParser;
@@ -77,9 +76,8 @@ public class ChatHttpAPI extends APIModule {
 
     public JSONObject speakIntoChannel(APIRequest r) throws APIException {
         String channel = r.getArg("channel").getAsString().toLowerCase();
-        String name = null;
+        String name = r.getUser().getName();
         if (r.hasArg("username")) name = r.getArg("username").getAsString();
-        if (name == null && r.getUser() instanceof APIForumUser) name = r.getUser().getName();
 
         ChatChannel chan = chat.getChannel(channel);
         if (chan==null)

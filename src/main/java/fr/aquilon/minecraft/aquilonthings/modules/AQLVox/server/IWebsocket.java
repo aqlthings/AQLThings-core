@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model;
+package fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server;
 
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import org.json.JSONObject;

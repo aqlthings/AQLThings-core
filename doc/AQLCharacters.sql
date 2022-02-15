@@ -68,7 +68,7 @@ CREATE TABLE aqlcharacters_char_edits (
 	charid int(11),
 	field varchar(32),
 	updated timestamp,
-	author int(32) NOT NULL,
+	author varchar(128) NOT NULL,
 	status varchar(32) NOT NULL,
 	comment varchar(256),
 	diff text,
@@ -79,7 +79,7 @@ CREATE TABLE aqlcharacters_char_edits (
 -- Notes staff sur les persos
 CREATE TABLE aqlcharacters_char_staff_notes (
 	charid int(11),
-	author int(32) NOT NULL,
+	author varchar(128) NOT NULL,
 	created timestamp NOT NULL,
 	updated timestamp DEFAULT CURRENT_TIMESTAMP,
 	note text,

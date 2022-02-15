@@ -1,7 +1,7 @@
 package fr.aquilon.minecraft.aquilonthings.modules.AQLCharacters.model;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import fr.aquilon.minecraft.utils.JSONExportable;
 import org.bukkit.command.CommandSender;
 import org.json.JSONObject;

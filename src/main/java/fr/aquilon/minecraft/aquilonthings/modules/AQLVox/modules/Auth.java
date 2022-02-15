@@ -12,16 +12,15 @@ import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIError;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.APIException;
 import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.exceptions.InternalServerErrorEx;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIModule;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIRequest;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIServer;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.model.APIUser;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.APIModule;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIRequest;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.server.APIServer;
+import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.users.APIUser;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import fr.aquilon.minecraft.utils.JSONUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -60,7 +59,7 @@ public class Auth extends APIModule {
 
     public static final String PERM_PROLONGED_TOKEN = "auth.token.prolong";
 
-    private DatabaseConnector db;
+    private final DatabaseConnector db;
 
     public Auth(APIServer server, ModuleLogger logger) {
         super(MODULE_NAME, server, logger);
@@ -221,7 +220,7 @@ public class Auth extends APIModule {
 
     public JSONObject getPermissions(APIRequest r) {
         JSONObject res = new JSONObject();
-        res.put("perms",r.getUser().getPermList());
+        res.put("perms",r.getUser().getPermissions().getPermList());
         return res;
     }
 
@@ -244,7 +243,7 @@ public class Auth extends APIModule {
                 k.put("id", res.getString("key_id"));
                 k.put("name", res.getString("key_name"));
                 String permsStr = res.getString("permissions");
-                List<String> perms = permsStr!=null ? Arrays.asList(permsStr.split("; ")) : null;
+                List<String> perms = permsStr!=null ? Arrays.asList(permsStr.split("; ?")) : null;
                 k.put("permissions", perms != null ? perms : JSONObject.NULL); // null means user's permissions
                 keyList.put(k);
             }
@@ -290,7 +289,7 @@ public class Auth extends APIModule {
             key.put("name", res.getString("key_name"));
             key.put("key", res.getString("api_key"));
             String permsStr = res.getString("permissions");
-            List<String> perms = permsStr!=null ? Arrays.asList(permsStr.split("; ")) : null;
+            List<String> perms = permsStr!=null ? Arrays.asList(permsStr.split("; ?")) : null;
             key.put("permissions", perms); // null means user's permissions
             key.put("owner", owner);
         } catch (SQLException e) {

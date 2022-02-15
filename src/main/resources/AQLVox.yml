@@ -1,6 +1,5 @@
 #////////////////////////////////////////O\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 #                        Fichier de configuration d'AQLVox
-#
 # Port : 20088 par défaut
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\O///////////////////////////////////////////
 
@@ -15,18 +14,18 @@ modules:
 auth:
   token:
     secret: 'FIXME_this_is_a_weak_secret'
-  standard:
-    admin:
-      password: 'aSuperStrongPassword'
-      permissions:
-        - all
-    default:
-      permissions:
-        - nav.about.version.get
-        - nav.auth.info.get
-        - nav.auth.perms.get
-        - nav.players.root
-        - nav.players.list
-        - nav.players.count
-        - nav.players.limit
-        - nav.server.time.*
+  static:
+    # admin:
+    #   password: 'aSuperStrongPassword'
+    #   permissions:
+    #     - all
+  default:
+    permissions:
+      - nav.about.version.get
+      - nav.auth.info.get
+      - nav.auth.perms.get
+      - nav.players.root
+      - nav.players.list
+      - nav.players.count
+      - nav.players.limit
+      - nav.server.time.*
