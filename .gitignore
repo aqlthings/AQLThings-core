@@ -16,10 +16,14 @@ nbactions.xml
 *.iws
 .idea/
 
+# gradle
+.gradle/
+
 # Mac filesystem dust
 .DS_Store/
 
 # various other potential build files
+build/
 target/
 
 # Linux temp files
