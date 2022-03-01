@@ -2,10 +2,10 @@ package fr.aquilon.minecraft.aquilonthings;
 
 import fr.aquilon.minecraft.aquilonthings.module.IModule;
 import fr.aquilon.minecraft.aquilonthings.module.Module;
+import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadList;
 import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadException;
 import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadResult;
 import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoader;
-import fr.aquilon.minecraft.aquilonthings.modules.AQLVox.AQLVox;
 import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
@@ -18,8 +18,10 @@ import org.bukkit.plugin.messaging.PluginMessageRecipient;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -28,7 +30,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class AquilonThings extends JavaPlugin implements Listener {
-	public static final String VERSION = "3.2.0";
+	public static final String VERSION = Context.VERSION;
 
 	public static final String PERM_ROOT = "aqlthings";
 	public static final String PERM_NOBLE = PERM_ROOT+".noble";
@@ -47,6 +49,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 
 	public static AquilonThings instance;
 
+	private ClassLoader moduleClassLoader;
 	private Map<String, Module<?>> moduleList;
 
 	public AquilonThings(){
@@ -63,28 +66,28 @@ public class AquilonThings extends JavaPlugin implements Listener {
 			LOGGER.severe(LOG_PREFIX+" could not create module folder");
 			return;
 		}
-		ModuleLoadResult loaded;
+		List<Module<?>> loadedModules;
+		List<ModuleLoadException> loadErrors;
 		try {
-			loaded = ModuleLoader.loadModulesFromFolder(moduleFolder, getClassLoader());
+			ModuleLoadList toLoad = ModuleLoadList.fromFolder(moduleFolder, getClassLoader());
+			moduleClassLoader = toLoad.classLoader;
+			loadErrors = new ArrayList<>(toLoad.errors);
+			ModuleLoadResult loaded = ModuleLoader.loadModules(toLoad);
+			loadedModules = loaded.modules;
+			loadErrors.addAll(loaded.errors);
 		} catch (NoSuchFileException e) {
 			LOGGER.severe(LOG_PREFIX+" module folder not found");
 			return;
+		} catch (Exception ex) {
+			LOGGER.severe(LOG_PREFIX+" Error while loading modules");
+			LOGGER.log(Level.INFO, LOG_PREFIX+"Error:", ex);
+			return;
 		}
-		moduleList.putAll(loaded.modules.stream().collect(Collectors.toMap(Module::getName, Function.identity())));
-		if (loaded.errors.size() > 0) {
-			for (ModuleLoadException err : loaded.errors) {
+		moduleList.putAll(loadedModules.stream().collect(Collectors.toMap(Module::getName, Function.identity())));
+		if (loadErrors.size() > 0) {
+			for (ModuleLoadException err : loadErrors) {
 				LOGGER.warning(LOG_PREFIX+" Could not load module \""+err.file+"\": "+err.getMessage());
 				LOGGER.log(Level.FINE, LOG_PREFIX+" Error details:", err);
-			}
-		}
-
-		if (getConfig().getBoolean("aqlvox.enabled", true)) {
-			try {
-				Module<AQLVox> module = ModuleLoader.loadAnnotatedModule("AQLVox", new AQLVox());
-				moduleList.put(module.getName(), module);
-			} catch (ModuleLoadException e) {
-				LOGGER.warning(LOG_PREFIX+" Could not load AQLVox: "+e.getMessage());
-				LOGGER.log(Level.FINE, LOG_PREFIX+" Error details:", e);
 			}
 		}
 	}
@@ -99,12 +102,12 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		registerModules();
 		registerModulesIO();
 
-		// Enable all modules
+		// Enable modules
 		Iterator<Module<?>> it = moduleList.values().iterator();
 		while(it.hasNext()){
 			Module<?> module = it.next();
 			try {
-				module.start();
+				Module.start(module);
 			} catch (Throwable e) {
 				LOGGER.severe(LOG_PREFIX+" Unable to start module: " + module.getName());
 				LOGGER.log(Level.INFO, AquilonThings.LOG_PREFIX+" Exception: ",e);
@@ -125,13 +128,13 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		}
 	}
 
-	public void disableModule(Module module) {
+	public void disableModule(Module<?> module) {
 		disableModule(module, true);
 	}
 
-	private void disableModule(Module module, boolean remove) {
+	private void disableModule(Module<?> module, boolean remove) {
 		try {
-			module.stop();
+			Module.stop(module);
 		} catch (Throwable e) {
 			LOGGER.severe(AquilonThings.LOG_PREFIX+" Unable to stop module: " + module.getName());
 			LOGGER.info(AquilonThings.LOG_PREFIX+" Exception: "+e);
@@ -152,9 +155,9 @@ public class AquilonThings extends JavaPlugin implements Listener {
 	private void registerModulesIO() {
 		Iterator<Module<?>> it = moduleList.values().iterator();
 		while (it.hasNext()) {
-			Module module = it.next();
+			Module<?> module = it.next();
 			try {
-				module.registerIO();
+				Module.registerIO(module);
 			} catch (Exception e) {
 				LOGGER.log(Level.WARNING, AquilonThings.LOG_PREFIX+"IO registration error: "+e.getMessage());
 				it.remove();
@@ -224,6 +227,10 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		return getModuleData(mClass.getName());
 	}
 
+	public ClassLoader getModuleClassLoader() {
+		return moduleClassLoader;
+	}
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (!label.equals("aqlthings")) return false;
@@ -276,7 +283,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 					sender.sendMessage(ChatColor.RED+"Alors ... NON !");
 					return true;
 				}
-				Module m = getModule(moduleName);
+				Module<?> m = getModule(moduleName);
 				if (m == null) {
 					sender.sendMessage(ChatColor.YELLOW+"Module non trouvé !");
 					return true;

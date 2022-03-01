@@ -18,11 +18,11 @@ import java.util.List;
 public interface IModule extends Listener, CommandExecutor, TabCompleter, PluginMessageListener {
     /**
      * Module initialization method
-     * @param db A connector to access the database
+     * @param module The AquilonThings module definition
      * @throws Module.StartException When an error occurs during start-up
      * @return <code>true</code> on success, <code>false</code> otherwise
      */
-    boolean onStartUp(DatabaseConnector db) throws Module.StartException;
+    boolean onStartUp(Module<?> module) throws Module.StartException;
 
     /**
      * Module stop method

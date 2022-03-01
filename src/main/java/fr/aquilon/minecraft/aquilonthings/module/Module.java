@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 // TODO: ModuleConfig getModuleConfig()
 public class Module<T extends IModule> {
 	public final ModuleDescription meta;
-	private T data;
-	private ModuleInputOutputs io;
+	private final T data;
+	private final ModuleInputOutputs io;
 
 	public Module(T data, ModuleDescription desc) {
 		this.meta = desc;
@@ -41,12 +41,6 @@ public class Module<T extends IModule> {
 
 	public ModuleInputOutputs getInputOutputs() {
 		return io.readonly();
-	}
-
-	public void registerIO() {
-		registerEventListener(data());
-		registerPackets();
-		registerCommands();
 	}
 
 	private void registerCommands() {
@@ -136,25 +130,31 @@ public class Module<T extends IModule> {
 		return ModuleLogger.get(data.getClass());
 	}
 
-	public void start() throws StartException {
+	public static void registerIO(Module<?> module) {
+		module.registerEventListener(module.data());
+		module.registerPackets();
+		module.registerCommands();
+	}
+
+	public static void start(Module<?> module) throws StartException {
 		try {
-			if (!data().onStartUp(AquilonThings.instance.getNewDatabaseConnector()))
-				throw new StartException("Error while starting module: "+getName());
+			if (!module.data().onStartUp(module))
+				throw new StartException("Error while starting module: "+module.getName());
 		} catch (StartException e) {
 			throw e;
 		} catch (Throwable e) {
-			throw new StartException("Error while starting module: "+getName(), e);
+			throw new StartException("Error while starting module: "+module.getName(), e);
 		}
 	}
 
-	public void stop() throws StopException {
+	public static void stop(Module<?> module) throws StopException {
 		try {
-			if (!data().onStop())
-				throw new StopException("Error while stopping module: "+getName());
+			if (!module.data().onStop())
+				throw new StopException("Error while stopping module: "+module.getName());
 		} catch (StopException e) {
 			throw e;
 		} catch (Throwable e) {
-			throw new StopException("Error while stopping module: "+getName());
+			throw new StopException("Error while stopping module: "+module.getName());
 		}
 	}
 
@@ -172,6 +172,7 @@ public class Module<T extends IModule> {
 		public InitException(String message) {
 			super(message);
 		}
+
 		public InitException(String message, Throwable cause) {
 			super(message, cause);
 		}

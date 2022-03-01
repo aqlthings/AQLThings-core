@@ -1,10 +1,11 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'java'
+    id 'maven-publish'
 }
 
 group 'fr.aquilon.minecraft'
-version '3.1.0'
+version '4.0.0-SNAPSHOT-2'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 javadoc.options.encoding = 'utf-8'
@@ -20,9 +21,6 @@ repositories {
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT'
     compileOnly 'mysql:mysql-connector-java:8.0.25'
-    implementation 'org.nanohttpd:nanohttpd:2.3.1'
-    implementation 'org.nanohttpd:nanohttpd-websocket:2.3.1'
-    implementation 'com.auth0:java-jwt:3.18.2'
     compileOnly 'net.luckperms:api:5.3'
     implementation 'org.json:json:20190722'
 
@@ -48,7 +46,77 @@ jar {
     }
 }
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir('repo')
+        }
+    }
+}
+
 shadowJar {
     minimize()
     archiveClassifier.set('')
+}
+
+task generateTemplatedJava(type:Copy) {
+    def ctx = templateContext()
+    inputs.properties ctx
+    from 'src/template/java'
+    into "$buildDir/generated/java"
+    expand ctx
+}
+
+sourceSets.main.java.srcDir "$buildDir/generated/java"
+compileJava.dependsOn generateTemplatedJava
+
+task generateTemplatedResources(type:Copy) {
+    def ctx = templateContext()
+    inputs.properties ctx
+    from 'src/template/resources'
+    into "$buildDir/generated/resources"
+    expand ctx
+}
+
+sourceSets.main.resources.srcDir "$buildDir/generated/resources"
+processResources.dependsOn generateTemplatedResources
+
+sourceSets {
+    template {
+        java {}
+        resources {}
+    }
+}
+
+def templateContext() {
+    [
+            version: project.version,
+            branch: gitBranch(),
+            commit: gitCommit(),
+            date: new Date().format("yyyy-MM-dd"),
+            timestamp: new Date().getTime()
+    ]
+}
+
+def gitCommit() {
+    def commit = ""
+    def proc = "git rev-parse HEAD".execute()
+    proc.in.eachLine { line -> commit = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    commit
+}
+
+def gitBranch() {
+    def branch = ""
+    def proc = "git rev-parse --abbrev-ref HEAD".execute()
+    proc.in.eachLine { line -> branch = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    branch
 }

@@ -20,7 +20,7 @@ public class ModuleTemplate implements IModule {
 	private static final ModuleLogger LOGGER = ModuleLogger.get();
 
 	@Override
-	public boolean onStartUp(DatabaseConnector db) {
+	public boolean onStartUp(Module<?> mod) {
 		LOGGER.mInfo("Lancement du module de test.");
 		return true;
 	}

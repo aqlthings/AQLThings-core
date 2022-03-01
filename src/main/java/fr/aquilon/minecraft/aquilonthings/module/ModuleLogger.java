@@ -8,17 +8,23 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public class ModuleLogger {
-	private static Map<String, ModuleLogger> modulesLoggers = new HashMap<>();
-	
+	private static final Map<String, ModuleLogger> modulesLoggers = new HashMap<>();
+
+	private final String moduleName;
 	private boolean enabled;
 	public boolean debug;
-	private String moduleName;
 
+	/**
+	 * Cannot be used in static context
+	 * @return The module logger for the calling module
+	 */
 	public static ModuleLogger get() {
+		ClassLoader loader = AquilonThings.instance.getModuleClassLoader();
+		if (loader == null) loader = Thread.currentThread().getContextClassLoader();
 		String klassName = Thread.currentThread().getStackTrace()[2].getClassName();
 		Class<?> rawKlass;
 		try {
-			rawKlass = ModuleLogger.class.getClassLoader().loadClass(klassName);
+			rawKlass = loader.loadClass(klassName);
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException("Unable to automatically determine calling class", e);
 		}
@@ -38,15 +44,24 @@ public class ModuleLogger {
 	public static ModuleLogger get(Class<? extends IModule> module, boolean debug) {
 		ModuleLogger logger = modulesLoggers.get(module.getName());
 		if (logger == null) {
-			logger = new ModuleLogger(module, debug);
+			logger = get(module.getAnnotation(AQLThingsModule.class).name(), module.getName(), debug);
 			modulesLoggers.put(module.getName(), logger);
 		}
 		return logger;
 	}
+
+	private static ModuleLogger get(String moduleName, String moduleClass, boolean debug) {
+		ModuleLogger logger = modulesLoggers.get(moduleClass);
+		if (logger == null) {
+			logger = new ModuleLogger(moduleName, debug);
+			modulesLoggers.put(moduleClass, logger);
+		}
+		return logger;
+	}
 	
-	private ModuleLogger(Class<? extends IModule> module, boolean debug){
+	private ModuleLogger(String moduleName, boolean debug){
 		this.enabled = true;
-		this.moduleName = module.getAnnotation(AQLThingsModule.class).name();
+		this.moduleName = moduleName;
 		this.debug = debug;
 	}
 	
