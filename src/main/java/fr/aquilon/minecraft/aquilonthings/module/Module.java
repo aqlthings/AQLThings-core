@@ -3,12 +3,15 @@ package fr.aquilon.minecraft.aquilonthings.module;
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.database.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.events.EventRegistrar;
+import fr.aquilon.minecraft.aquilonthings.utils.ConfigHelper;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.messaging.PluginMessageListenerRegistration;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,7 +19,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-// TODO: ModuleConfig getModuleConfig()
 public class Module<T extends IModule> {
 	public final ModuleDescription meta;
 	private final T data;
@@ -56,6 +58,34 @@ public class Module<T extends IModule> {
 	 */
 	public DatabaseConnector getDatabaseConnector() {
 		return AquilonThings.instance.getNewDatabaseConnector();
+	}
+
+	/**
+	 * Get the YAML config for this module.
+	 * <p>
+	 *     This method only calls {@link Module#getModuleConfig(String, String)} with no default config.
+	 * </p>
+	 * @param filename The name of the config file
+	 * @return The loaded configuration
+	 */
+	public YamlConfiguration getModuleConfig(String filename) {
+		return getModuleConfig(filename, null);
+	}
+
+	/**
+	 * Get the YAML config for this module.
+	 * <p>
+	 *     The config for this module is placed in the AQLThings plugin folder. Each module has it's own subfolder.
+	 *     The name of the config file is chosen by the module (often config.yml)
+	 * </p>
+	 * @param filename The name of the config file in the module config folder.
+	 * @param defaultConfig The path of the default config file in the module jar, can be <code>null</code>.
+	 * @return The loaded configuration (never <code>null</code>)
+	 */
+	public YamlConfiguration getModuleConfig(String filename, String defaultConfig) {
+		File folder = new File(AquilonThings.instance.getDataFolder(), meta.shortName);
+		File file = new File(folder, filename);
+		return ConfigHelper.loadConfig(file, defaultConfig, getLogger());
 	}
 
 	private void registerCommands() {
