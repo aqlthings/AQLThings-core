@@ -7,6 +7,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+/**
+ * A custom logger for each AquilonThings module.
+ * <p>
+ *     Prefixes log messages with the name of the module
+ * </p>
+ */
 public class ModuleLogger {
 	private static final Map<String, ModuleLogger> modulesLoggers = new HashMap<>();
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'fr.aquilon.minecraft'
-version '4.0.0-SNAPSHOT-2'
+version '4.0.0-SNAPSHOT-3'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 javadoc.options.encoding = 'utf-8'
@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly 'mysql:mysql-connector-java:8.0.25'
     compileOnly 'net.luckperms:api:5.3'
     implementation 'org.json:json:20190722'

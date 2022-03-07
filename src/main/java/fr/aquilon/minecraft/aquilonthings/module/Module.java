@@ -19,6 +19,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+/**
+ * The AQLThings representation of a module.
+ * <p>
+ *     Manages module lifecycle and provides access to IOs and metadata.
+ * </p>
+ * @param <T> The class that actually contains the module logic.
+ */
 public class Module<T extends IModule> {
 	public final ModuleDescription meta;
 	private final T data;
@@ -30,18 +37,30 @@ public class Module<T extends IModule> {
 		this.io = new ModuleInputOutputs();
 	}
 
+	/**
+	 * @return The unique ID of this module.
+	 */
 	public String getID() {
 		return meta.getID();
 	}
 
+	/**
+	 * @return The user-friendly name of this module
+	 */
 	public String getName() {
 		return meta.getShortName();
 	}
 
+	/**
+	 * @return The instance of the implementing class
+	 */
 	public T data() {
 		return data;
 	}
 
+	/**
+	 * @return A read-only list of registered inputs and outputs for this module.
+	 */
 	public ModuleInputOutputs getInputOutputs() {
 		return io.readonly();
 	}
@@ -98,6 +117,16 @@ public class Module<T extends IModule> {
 					.collect(Collectors.joining(", ")));
 	}
 
+	/**
+	 * Register a command to be handled by this module.
+	 * <p>
+	 *     Commands specified in the module description are already registered.
+	 * </p>
+	 * @param cmd The command name
+	 * @param description A description of the command
+	 * @param usageMessage A message to explain usage of the command
+	 * @param aliases Other names the command can take
+	 */
 	public void registerCommand(String cmd, String description, String usageMessage, String... aliases) {
 		ModuleCommand command = new ModuleCommand(this, cmd, description, usageMessage, Arrays.asList(aliases));
 		try{
@@ -142,6 +171,10 @@ public class Module<T extends IModule> {
 			getLogger().mInfo("OutPackets: "+String.join(", ", io.outgoingPackets));
 	}
 
+	/**
+	 * Register a Bukkit event listener to handle events.
+	 * @param listener The class that contains event handlers.
+	 */
 	public void registerEventListener(Listener listener) {
 		Map<Class<? extends Event>, Set<RegisteredListener>> listeners = AquilonThings.instance.getPluginLoader()
 				.createRegisteredListeners(listener, AquilonThings.instance);
@@ -172,12 +205,21 @@ public class Module<T extends IModule> {
 		}
 	}
 
+	/**
+	 * Called automatically, registers all module IOs.
+	 * @param module The module whose IOs should be registered.
+	 */
 	public static void registerIO(Module<?> module) {
 		module.registerEventListener(module.data());
 		module.registerPackets();
 		module.registerCommands();
 	}
 
+	/**
+	 * Called automatically, triggers the start callback of the module.
+	 * @param module The module whose start callback should be called.
+	 * @throws StartException If an error occurs during module start.
+	 */
 	public static void start(Module<?> module) throws StartException {
 		try {
 			if (!module.data().onStartUp(module))
@@ -189,6 +231,11 @@ public class Module<T extends IModule> {
 		}
 	}
 
+	/**
+	 * Called automatically, triggers the stop callback of the module.
+	 * @param module The module whose stop callback should be called.
+	 * @throws StopException If an error occurs during module stop.
+	 */
 	public static void stop(Module<?> module) throws StopException {
 		try {
 			if (!module.data().onStop())
@@ -200,6 +247,14 @@ public class Module<T extends IModule> {
 		}
 	}
 
+	/**
+	 * Build a module instance from a class and a description.
+	 * @param klass The class to instantiate.
+	 * @param desc The description of the module.
+	 * @param <T> The type of the module implementing class.
+	 * @return The build module
+	 * @throws InitException In case an error occurs during instantiation.
+	 */
 	public static <T extends IModule> Module<T> loadFromClass(Class<T> klass, ModuleDescription desc) throws InitException {
 		T data;
 		try {
@@ -210,6 +265,9 @@ public class Module<T extends IModule> {
 		return new Module<>(data, desc);
 	}
 
+	/**
+	 * Thrown when an error occurs during module initialization.
+	 */
 	public static class InitException extends Exception {
 		public InitException(String message) {
 			super(message);
@@ -220,6 +278,9 @@ public class Module<T extends IModule> {
 		}
 	}
 
+	/**
+	 * To be thrown by modules in the start callback in case an error occurs.
+	 */
 	public static class StartException extends Exception {
 		public StartException(String message) {
 			super(message);
@@ -230,6 +291,9 @@ public class Module<T extends IModule> {
 		}
 	}
 
+	/**
+	 * To be thrown by modules in the stop callback in case an error occurs.
+	 */
 	public static class StopException extends Exception {
 		public StopException(String message) {
 			super(message);

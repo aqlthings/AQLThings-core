@@ -12,7 +12,7 @@ import java.util.Map;
  * @author Billi
  */
 public class ScoredResultList<T> {
-    private Map<T, Integer> results;
+    private final Map<T, Integer> results;
 
     public ScoredResultList() {
         results = new HashMap<>();
@@ -37,16 +37,7 @@ public class ScoredResultList<T> {
      * @param score The score to check against
      * @param results The results to add
      */
-    public void addAllResults(int score, T... results) {
-        for (T t : results) addResult(t, score);
-    }
-
-    /**
-     * Adds all results with the same score, see {@link #addResult}.
-     * @param score The score to check against
-     * @param results The results to add
-     */
-    public void addAllResults(int score, Collection<T> results) {
+    public void addAllResults(int score, Iterable<T> results) {
         for (T t : results) addResult(t, score);
     }
 

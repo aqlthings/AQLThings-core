@@ -6,13 +6,13 @@ import java.util.HashMap;
 import java.util.Stack;
 
 /**
- * Created by Billi on 19/04/2017.
- *
+ * Helper to convert a minecraft formatted string to HTML or unix
+ * @see <a href="https://github.com/BilliAlpha/Minecraft_BookTool/blob/master/src/mcbook/Editor.java">
+ *          github.com/BilliAlpha/Minecraft_BookTool
+ *     </a>
  * @author Billi
  */
 public class MinecraftParser {
-    // Improved and adapted from : https://github.com/BilliAlpha/Minecraft_BookTool/blob/master/src/mcbook/Editor.java
-
     public static final HashMap<Character, String> COLOR_NAMES = new HashMap<>();
     public static final HashMap<Character, String> FORMATS_HTML = new HashMap<>();
     public static final HashMap<Character, String> COLORS_HTML = new HashMap<>();
@@ -88,55 +88,52 @@ public class MinecraftParser {
         in = in.replaceAll("<", "&#60;");
         in = in.replaceAll(">", "&#62;");
         in = in.replaceAll("\n", "<br/>\n");
-        String res = "<p>"+in;
+        StringBuilder res = new StringBuilder("<p>" + in);
         boolean colorInUse = false;
-        int index = res.indexOf('§');
-        Stack<Character> symboles = new Stack();
+        int index = res.toString().indexOf('§');
+        Stack<Character> symboles = new Stack<>();
         while (index!=-1 && index<res.length()-2) { // Pour eviter le bug du § en dernier caractère
             char key = res.charAt(index+1);
-            String tags = "";
-            switch(key) {
-                case 'r':
-                    if (colorInUse){
-                        if (classes) tags+="</span>";
-                        else tags+="</font>";
-                    }
-                    while(!symboles.isEmpty()) {
-                        tags += "</"+FORMATS_HTML.get(symboles.pop())+">";
-                    }
-                    if (classes) tags+="<span class=\"color-"+COLOR_NAMES.get(key)+"\">";
-                    else tags+="<font color='#"+COLORS_HTML.get(key)+"'>";
-                    break;
-                default:
-                    if (COLORS_HTML.containsKey(key)) {
-                        if (colorInUse && key=='0') {
-                            if (classes) tags+="</span>";
-                            else tags+="</font>";
-                            colorInUse=false;
-                        } else {
-                            if (colorInUse){
-                                if (classes) tags+="</span>";
-                                else tags+="</font>";
-                            }
-                            if (classes) tags+="<span class=\"color-"+COLOR_NAMES.get(key)+"\">";
-                            else tags+="<font color='#"+COLORS_HTML.get(key)+"'>";
-                            colorInUse=true;
-                        }
+            StringBuilder tags = new StringBuilder();
+            if (key == 'r') {
+                if (colorInUse) {
+                    if (classes) tags.append("</span>");
+                    else tags.append("</font>");
+                }
+                while (!symboles.isEmpty()) {
+                    tags.append("</").append(FORMATS_HTML.get(symboles.pop())).append(">");
+                }
+                if (classes) tags.append("<span class=\"color-").append(COLOR_NAMES.get(key)).append("\">");
+                else tags.append("<font color='#").append(COLORS_HTML.get(key)).append("'>");
+            } else {
+                if (COLORS_HTML.containsKey(key)) {
+                    if (colorInUse && key == '0') {
+                        if (classes) tags.append("</span>");
+                        else tags.append("</font>");
+                        colorInUse = false;
                     } else {
-                        tags+="<"+FORMATS_HTML.get(key)+">";
-                        symboles.add(key);
+                        if (colorInUse) {
+                            if (classes) tags.append("</span>");
+                            else tags.append("</font>");
+                        }
+                        if (classes) tags.append("<span class=\"color-").append(COLOR_NAMES.get(key)).append("\">");
+                        else tags.append("<font color='#").append(COLORS_HTML.get(key)).append("'>");
+                        colorInUse = true;
                     }
-                    break;
+                } else {
+                    tags.append("<").append(FORMATS_HTML.get(key)).append(">");
+                    symboles.add(key);
+                }
             }
-            res = res.substring(0,index).concat(tags).concat(res.substring(index+2));
-            index = res.indexOf('§');
+            res = new StringBuilder(res.substring(0, index).concat(tags.toString()).concat(res.substring(index + 2)));
+            index = res.toString().indexOf('§');
         }
         if (colorInUse){
-            if (classes) res+="</span>";
-            else res+="</font>";
+            if (classes) res.append("</span>");
+            else res.append("</font>");
         }
         while(!symboles.isEmpty()) {
-            res += "</"+FORMATS_HTML.get(symboles.pop())+">";
+            res.append("</").append(FORMATS_HTML.get(symboles.pop())).append(">");
         }
         return res+"</p>";
     }

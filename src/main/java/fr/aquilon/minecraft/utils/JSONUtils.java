@@ -18,8 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Created by Billi on 20/04/2017.
- *
+ * Various utils to convert objects in JSON format
  * @author Billi
  */
 public class JSONUtils {
@@ -39,7 +38,7 @@ public class JSONUtils {
     }
 
     public static JSONArray jsonArray(Object[] arr) {
-        List list = Arrays.asList(arr);
+        List<?> list = Arrays.asList(arr);
         return new JSONArray(list);
     }
 
@@ -67,7 +66,7 @@ public class JSONUtils {
         return res;
     }
 
-    public static JSONObject jsonObject(Map data) {
+    public static JSONObject jsonObject(Map<?, ?> data) {
         JSONObject res = new JSONObject();
         for (Object key: data.keySet()) {
             Object value = data.get(key);
@@ -98,8 +97,7 @@ public class JSONUtils {
         Objects.requireNonNull(w);
         JSONObject res = new JSONObject();
         res.put("name", w.getName());
-        res.put("environement", w.getEnvironment().name());
-        res.put("type", w.getWorldType() != null ? w.getWorldType().name() : JSONObject.NULL);
+        res.put("environment", w.getEnvironment().name());
         return res;
     }
 

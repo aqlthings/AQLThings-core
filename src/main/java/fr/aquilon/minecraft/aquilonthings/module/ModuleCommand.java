@@ -19,13 +19,13 @@ import java.util.Objects;
  * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
 public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCommand {
-    private final Module module;
+    private final Module<?> module;
 
-    public ModuleCommand(Module module, String name) {
+    public ModuleCommand(Module<?> module, String name) {
         this(module, name, null, null, null);
     }
 
-    public ModuleCommand(Module module, String name, String description, String usageMessage, List<String> aliases) {
+    public ModuleCommand(Module<?> module, String name, String description, String usageMessage, List<String> aliases) {
         super(
                 name,
                 description != null ? description : "AquilonThings command",
@@ -40,7 +40,7 @@ public class ModuleCommand extends BukkitCommand implements PluginIdentifiableCo
         return AquilonThings.instance;
     }
 
-    public Module getModule() {
+    public Module<?> getModule() {
         return module;
     }
 

@@ -1,6 +1,6 @@
 name: AquilonThings
 version: ${version}
-api-version: "1.15"
+api-version: "1.16.5"
 description: AquilonThings est le framework plugin d'Aquilon
 website: https://github.com/aquilon-fr/AquilonThings
 main: fr.aquilon.minecraft.aquilonthings.AquilonThings
