@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.utils;
+package fr.aquilon.minecraft.aquilonthings.events;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

@@ -38,8 +38,12 @@ public class ModuleInputOutputs {
     }
 
     public ModuleInputOutputs readonly() {
+        HashMap<Class<? extends Event>, Set<RegisteredListener>> roEvtLists = new HashMap<>();
+        for (Map.Entry<Class<? extends Event>, Set<RegisteredListener>> e : eventListeners.entrySet()) {
+            roEvtLists.put(e.getKey(), Collections.unmodifiableSet(e.getValue()));
+        }
         return new ModuleInputOutputs(
-                Collections.unmodifiableMap(eventListeners),
+                Collections.unmodifiableMap(roEvtLists),
                 Collections.unmodifiableSet(incomingPackets),
                 Collections.unmodifiableSet(outgoingPackets),
                 Collections.unmodifiableSet(commands)

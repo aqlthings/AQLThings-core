@@ -1,7 +1,8 @@
 package fr.aquilon.minecraft.aquilonthings.module;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
-import fr.aquilon.minecraft.aquilonthings.utils.EventRegistrar;
+import fr.aquilon.minecraft.aquilonthings.database.DatabaseConnector;
+import fr.aquilon.minecraft.aquilonthings.events.EventRegistrar;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
@@ -41,6 +42,20 @@ public class Module<T extends IModule> {
 
 	public ModuleInputOutputs getInputOutputs() {
 		return io.readonly();
+	}
+
+	/**
+	 * @return The logger for this module
+	 */
+	public ModuleLogger getLogger() {
+		return ModuleLogger.get(data.getClass());
+	}
+
+	/**
+	 * @return A connector to the configured database
+	 */
+	public DatabaseConnector getDatabaseConnector() {
+		return AquilonThings.instance.getNewDatabaseConnector();
 	}
 
 	private void registerCommands() {
@@ -98,7 +113,8 @@ public class Module<T extends IModule> {
 	}
 
 	public void registerEventListener(Listener listener) {
-		Map<Class<? extends Event>, Set<RegisteredListener>> listeners = AquilonThings.instance.getPluginLoader().createRegisteredListeners(listener, AquilonThings.instance);
+		Map<Class<? extends Event>, Set<RegisteredListener>> listeners = AquilonThings.instance.getPluginLoader()
+				.createRegisteredListeners(listener, AquilonThings.instance);
 		for (Class<? extends Event> evt : listeners.keySet()) {
 			Set<RegisteredListener> list = listeners.get(evt);
 			EventRegistrar.getEventHandlerList(evt).registerAll(list);
@@ -124,10 +140,6 @@ public class Module<T extends IModule> {
 				getLogger().log(Level.INFO, "", "Error while unregistering command: "+cmd.getName(), e);
 			}
 		}
-	}
-
-	public ModuleLogger getLogger() {
-		return ModuleLogger.get(data.getClass());
 	}
 
 	public static void registerIO(Module<?> module) {

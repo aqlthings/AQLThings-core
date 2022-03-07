@@ -5,9 +5,7 @@ import fr.aquilon.minecraft.aquilonthings.module.IModule;
 import fr.aquilon.minecraft.aquilonthings.module.Module;
 import fr.aquilon.minecraft.aquilonthings.module.ModuleDescription;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarEntry;

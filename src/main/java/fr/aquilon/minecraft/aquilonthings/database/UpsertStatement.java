@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.utils;
+package fr.aquilon.minecraft.aquilonthings.database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

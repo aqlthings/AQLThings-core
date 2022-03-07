@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.utils;
+package fr.aquilon.minecraft.aquilonthings.database;
 
 import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 

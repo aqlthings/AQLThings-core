@@ -2,11 +2,11 @@ package fr.aquilon.minecraft.aquilonthings;
 
 import fr.aquilon.minecraft.aquilonthings.module.IModule;
 import fr.aquilon.minecraft.aquilonthings.module.Module;
-import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadList;
 import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadException;
+import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadList;
 import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoadResult;
 import fr.aquilon.minecraft.aquilonthings.module.loader.ModuleLoader;
-import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
+import fr.aquilon.minecraft.aquilonthings.database.DatabaseConnector;
 import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

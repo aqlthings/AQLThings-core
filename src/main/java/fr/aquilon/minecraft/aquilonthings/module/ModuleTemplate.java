@@ -4,7 +4,6 @@ import fr.aquilon.minecraft.aquilonthings.AquilonThings;
 import fr.aquilon.minecraft.aquilonthings.annotation.AQLThingsModule;
 import fr.aquilon.minecraft.aquilonthings.annotation.Cmd;
 import fr.aquilon.minecraft.aquilonthings.annotation.InPacket;
-import fr.aquilon.minecraft.aquilonthings.utils.DatabaseConnector;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

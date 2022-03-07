@@ -1,4 +1,4 @@
-package fr.aquilon.minecraft.aquilonthings.utils;
+package fr.aquilon.minecraft.aquilonthings.events;
 
 import fr.aquilon.minecraft.aquilonthings.module.IModule;
 import fr.aquilon.minecraft.utils.JSONExportable;
