@@ -23,7 +23,7 @@ dependencies {
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'org.nanohttpd:nanohttpd-websocket:2.3.1'
     implementation 'com.auth0:java-jwt:3.18.2'
-    compileOnly 'net.luckperms:api:5.3'
+    compileOnly 'net.luckperms:api:5.4'
     implementation 'org.json:json:20220320'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
