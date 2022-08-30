@@ -26,7 +26,6 @@ import fr.aquilon.minecraft.aquilonthings.utils.Utils;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.NoSuchAlgorithmException;
@@ -46,7 +45,7 @@ import java.util.logging.Level;
  * @author Billi
  */
 public class APIServer extends NanoWSD {
-    public static final Class[] DEFAULT_MODULE_LIST = {
+    public static final Class<?>[] DEFAULT_MODULE_LIST = {
             About.class,
             Players.class,
             Server.class,
@@ -60,7 +59,7 @@ public class APIServer extends NanoWSD {
     private final APILogger apiLogger;
     private final JWTVerifier tokenVerifier;
 
-    public APIServer(int port, AQLVox data) throws UnsupportedEncodingException {
+    public APIServer(int port, AQLVox data) {
         super(port);
         this.port = port;
         this.modules = new HashMap<>();
@@ -74,11 +73,12 @@ public class APIServer extends NanoWSD {
                 .build();
     }
 
+    @SuppressWarnings("unchecked")
     private void loadModules() {
         int routeCount = 0;
         modules.clear();
         FileConfiguration conf = data.getConfig();
-        List<Class> moduleClasses;
+        List<Class<?>> moduleClasses;
         if (conf.get("modules.enable") != null) {
             moduleClasses = new ArrayList<>();
             List<String> confModules = conf.getStringList("modules.enable");
@@ -93,7 +93,7 @@ public class APIServer extends NanoWSD {
         } else {
             moduleClasses = new ArrayList<>(Arrays.asList(DEFAULT_MODULE_LIST));
         }
-        for (Class mClass : moduleClasses) {
+        for (Class<?> mClass : moduleClasses) {
             if (!APIModule.class.isAssignableFrom(mClass)) {
                 AQLVox.LOGGER.mWarning("Trying to load invalid API module class: "+mClass.getName());
                 continue;
@@ -101,7 +101,7 @@ public class APIServer extends NanoWSD {
             APIModule m;
             try {
                 try {
-                    Constructor<APIModule> construct = mClass.getConstructor(APIServer.class, ModuleLogger.class);
+                    Constructor<APIModule> construct = (Constructor<APIModule>) mClass.getConstructor(APIServer.class, ModuleLogger.class);
                     m = construct.newInstance(this, AQLVox.LOGGER);
                 } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     AQLVox.LOGGER.mWarning("Unable to register API module: " + mClass.getSimpleName());
@@ -398,7 +398,7 @@ public class APIServer extends NanoWSD {
             for (APIWebSocket client : ws.getWsClients()) {
                 try {
                     client.close(NanoWSD.WebSocketFrame.CloseCode.NormalClosure, "Server shutting down.", false);
-                } catch (IOException e) {}
+                } catch (IOException ignored) {}
             }
         }
         super.stop();

@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'fr.aquilon.minecraft'
-version '3.1.0'
+version '3.1.1'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 javadoc.options.encoding = 'utf-8'
@@ -18,12 +18,12 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT'
     compileOnly 'mysql:mysql-connector-java:8.0.30'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'org.nanohttpd:nanohttpd-websocket:2.3.1'
-    implementation 'com.auth0:java-jwt:3.18.2'
-    compileOnly 'net.luckperms:api:5.3'
+    implementation 'com.auth0:java-jwt:4.0.0'
+    compileOnly 'net.luckperms:api:5.4'
     implementation 'org.json:json:20220320'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'

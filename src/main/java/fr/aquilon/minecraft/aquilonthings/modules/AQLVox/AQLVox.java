@@ -36,9 +36,8 @@ public class AQLVox implements IModule {
 	/* TODO:
 	 * 	- Players > kick/ban/heal/kill
 	 * 	- load base URL from config (ex: aquilon-mc.fr/api/)
-	 * 	- user providers (Static users, DB users, Forum users)
 	 */
-	public static final String VERSION = "2.3.0";
+	public static final String VERSION = "2.4.0";
 
 	public static final ModuleLogger LOGGER = ModuleLogger.get();
 
@@ -49,10 +48,10 @@ public class AQLVox implements IModule {
 
 	public static AQLVox instance;
 
+	private final HashMap<String, APIStaticUser> staticUsers;
 	private APILogger apiLogger;
 	private APIServer server = null;
 	private FileConfiguration config;
-	private HashMap<String, APIStaticUser> staticUsers;
 	private APIStaticUser defaultUser;
 
 	public AQLVox() {
@@ -138,20 +137,21 @@ public class AQLVox implements IModule {
 			} else if (args.length>=1 && args[0].equalsIgnoreCase("logs")) {
 				File logsFolder = new File(AquilonThings.instance.getDataFolder()+"/logs");
 				File[] logs = logsFolder.listFiles();
+				if (logs == null) return false;
 				sender.sendMessage(ChatColor.YELLOW+"API Logs: ("+logs.length+")");
-				String msg = "";
+				StringBuilder msg = new StringBuilder();
 				for (File l: logs) {
-					msg += ChatColor.GRAY + l.getName() + ChatColor.YELLOW + ", ";
+					msg.append(ChatColor.GRAY).append(l.getName()).append(ChatColor.YELLOW).append(", ");
 				}
-                if (!msg.isEmpty()) sender.sendMessage(ChatColor.YELLOW + "> " + msg.substring(0, msg.length()-2));
+                if (msg.length() > 0) sender.sendMessage(ChatColor.YELLOW + "> " + msg.substring(0, msg.length()-2));
 				return true;
 			} else if (args.length>=1 && args[0].equalsIgnoreCase("staticUsers")) {
 				sender.sendMessage(ChatColor.YELLOW+"API Static Users: ("+ staticUsers.size()+")");
-				String msg = "";
+				StringBuilder msg = new StringBuilder();
 				for (String u: staticUsers.keySet()) {
-					msg += ChatColor.BLUE + u + ChatColor.YELLOW + ", ";
+					msg.append(ChatColor.BLUE).append(u).append(ChatColor.YELLOW).append(", ");
 				}
-                if (!msg.isEmpty()) sender.sendMessage(ChatColor.YELLOW + "> " + msg.substring(0, msg.length()-2));
+                if (msg.length() > 0) sender.sendMessage(ChatColor.YELLOW + "> " + msg.substring(0, msg.length()-2));
 				return true;
 			} else if (args.length>=2 && args[0].equalsIgnoreCase("perms")) {
 				APIUser usr = staticUsers.get(args[1]);
@@ -161,11 +161,11 @@ public class AQLVox implements IModule {
 					return true;
 				}
 				sender.sendMessage(ChatColor.YELLOW+"API User Permissions: ("+ChatColor.BLUE+args[1]+ChatColor.YELLOW+")");
-				String msg = "";
+				StringBuilder msg = new StringBuilder();
 				for (String u: usr.getPermList()) {
-					msg += ChatColor.WHITE + u + ChatColor.YELLOW + ", ";
+					msg.append(ChatColor.WHITE).append(u).append(ChatColor.YELLOW).append(", ");
 				}
-				if (!msg.isEmpty()) sender.sendMessage(ChatColor.YELLOW + "> " + msg.substring(0, msg.length()-2));
+				if (msg.length() > 0) sender.sendMessage(ChatColor.YELLOW + "> " + msg.substring(0, msg.length()-2));
 				return true;
 			} else if (args.length>=1 && args[0].equalsIgnoreCase("reload")) {
                 FileConfiguration newConf = Utils.loadConfig(CONFIG_FILE);

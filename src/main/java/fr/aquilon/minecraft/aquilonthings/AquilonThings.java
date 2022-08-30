@@ -38,7 +38,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class AquilonThings extends JavaPlugin implements Listener {
-	public static final String VERSION = "3.1.0";
+	public static final String VERSION = "3.1.1";
 
 	public static final String PERM_ROOT = "aqlthings";
 	public static final String PERM_NOBLE = PERM_ROOT+".noble";
@@ -55,7 +55,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
     public static final Logger LOGGER = Logger.getLogger("Minecraft");
     public static final String LOG_PREFIX = "[AqlThings]";
 
-	public static final Class[] MODULE_LIST = {
+	public static final Class<?>[] MODULE_LIST = {
 			AQLEmotes.class,
 			AQLPlaces.class,
 			AQLNobles.class,
@@ -82,12 +82,12 @@ public class AquilonThings extends JavaPlugin implements Listener {
 
 	/**
 	 * Loads modules to be registered with the framework
-	 * @todo lecture automatique depuis le package modules (or load JARs from a "modules" folder)
+	 * TODO: lecture automatique depuis le package modules (or load JARs from a "modules" folder)
 	 */
 	private void registerModules() {
 		moduleList = new HashMap<>();
 		ClassLoader loader = getClassLoader();
-		List<Class> moduleClasses;
+		List<Class<?>> moduleClasses;
 		if (getConfig().get("modules.enable") != null) {
 			moduleClasses = new ArrayList<>();
 			List<String> confModules = getConfig().getStringList("modules.enable");
@@ -149,11 +149,11 @@ public class AquilonThings extends JavaPlugin implements Listener {
 		}
 	}
 
-	public void disableModule(Module module) {
+	public void disableModule(Module<?> module) {
 		disableModule(module, true);
 	}
 
-	private void disableModule(Module module, boolean remove) {
+	private void disableModule(Module<?> module, boolean remove) {
 		try {
 			module.stop();
 		} catch (Throwable e) {
@@ -176,7 +176,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 	private void registerModulesIO() {
 		Iterator<Module<?>> it = moduleList.values().iterator();
 		while (it.hasNext()) {
-			Module module = it.next();
+			Module<?> module = it.next();
 			try {
 				module.registerIO();
 			} catch (Exception e) {
@@ -300,7 +300,7 @@ public class AquilonThings extends JavaPlugin implements Listener {
 					sender.sendMessage(ChatColor.RED+"Alors ... NON !");
 					return true;
 				}
-				Module m = getModule(moduleName);
+				Module<?> m = getModule(moduleName);
 				if (m == null) {
 					sender.sendMessage(ChatColor.YELLOW+"Module non trouvé !");
 					return true;
