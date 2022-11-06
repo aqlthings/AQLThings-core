@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT'
-    compileOnly 'mysql:mysql-connector-java:8.0.30'
+    compileOnly 'mysql:mysql-connector-java:8.0.31'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'org.nanohttpd:nanohttpd-websocket:2.3.1'
     implementation 'com.auth0:java-jwt:4.2.1'
