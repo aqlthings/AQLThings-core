@@ -70,6 +70,7 @@ Manages players roleplay names and descriptions.
 
 ### AQLNobles ###
 Custom module to give some players specific abilities.
+[See comands](src/main/java/fr/aquilon/minecraft/aquilonthings/modules/AQLNobles/AQLNobles.md)
 
 ### AQLPlaces ###
 Add custom events and actions to places in your world.
@@ -94,7 +95,8 @@ Miscellaneous utilities for minecraft server staffs.
 Allows some player to connect to the server without anyone knowing.
 
 ### AQLBabel ###
-Allows players to "speak" with differents languages, using chat color or prefixes.
+Allows players to "speak" with differents languages by garblelling message for non locutors.
+[See comands](src/main/java/fr/aquilon/minecraft/aquilonthings/modules/AQLBabel/AQLBabel.md)
 
 ### And more ... ###
 Some other modules are still in development and haven't yet been merged in the master branch.
