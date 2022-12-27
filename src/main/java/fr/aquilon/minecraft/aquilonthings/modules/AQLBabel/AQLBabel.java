@@ -387,7 +387,7 @@ public class AQLBabel implements IModule {
         Language senderLang = senderInfo.getSelectedLanguage();
         if (senderLang == null) return; // Do not garble common tongue
 
-        // Translate message
+        // "Translate" (obfuscate) message
         String garble = senderLang.translate(evt.getMessage());
         String garbledMessage = chan.computeMessage(garble, evt.getSenderName(), evt.getSenderDisplayName(),
                 evt.getSenderPrefix(), evt.getSenderSuffix(), evt.getSenderColor(), evt.isMessageColored());

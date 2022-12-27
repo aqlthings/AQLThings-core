@@ -93,11 +93,13 @@ Miscellaneous utilities for minecraft server staffs.
 ### AQLVanish ###
 Allows some player to connect to the server without anyone knowing.
 
+### AQLBabel ###
+Allows players to "speak" with differents languages, using chat color or prefixes.
+
 ### And more ... ###
 Some other modules are still in development and haven't yet been merged in the master branch.
 
  * AQLDonjon
- * AQLBabel
  * RandomEncounters
 
 ## Authors ##
