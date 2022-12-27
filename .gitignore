@@ -21,6 +21,13 @@ nbactions.xml
 
 # various other potential build files
 target/
+bin/
 
 # Linux temp files
 *~
+
+#gradle
+.gradle/
+
+#VSCode stuff
+.vscode/
