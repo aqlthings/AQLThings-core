@@ -39,7 +39,7 @@ import java.util.UUID;
 @AQLThingsModule(
         name = "AQLChat",
         cmds = {
-                @Cmd(value = AQLChat.COMMAND_CH, desc = "Gestion des cannaux de chat"),
+                @Cmd(value = AQLChat.COMMAND_CH, desc = "Gestion des canaux de chat"),
                 @Cmd(value = AQLChat.COMMAND_QMSG, desc = "Envoi de messages formatés")
         },
         inPackets = @InPacket(AQLChat.CHANNEL_CHAT_ICON),
