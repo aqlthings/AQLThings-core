@@ -7,7 +7,7 @@ import java.util.Objects;
  * Holds info about a month
  * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
-public class Month implements CalendarElement {
+public class Month implements ICalendarElement {
     private final CalendarSet<Month> monthSet;
     private final int index;
     private final String id;

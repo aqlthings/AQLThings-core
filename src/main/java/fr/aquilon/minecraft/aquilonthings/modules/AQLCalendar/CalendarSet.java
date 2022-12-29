@@ -14,10 +14,10 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * Holds a set of {@link CalendarElement}
+ * Holds a set of {@link ICalendarElement}
  * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
-public class CalendarSet<T extends CalendarElement> implements Iterable<T> {
+public class CalendarSet<T extends ICalendarElement> implements Iterable<T> {
     private final String type;
     private final List<T> list;
     private final Map<String, T> map;

@@ -6,7 +6,7 @@ import java.util.Objects;
  * Holds info about a season
  * @author BilliAlpha (billi.pamege.300@gmail.com)
  */
-public class Season implements CalendarElement {
+public class Season implements ICalendarElement {
     private final CalendarSet<Season> seasonSet;
     private final int index;
     private final String id;

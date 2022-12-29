@@ -87,6 +87,8 @@ Send clients information about the borders of the current WorldGard area they ar
 _Requires client side modifications_
 
 Manages the current time (time of day and date) and seasons.
+[See comands](src/main/java/fr/aquilon/minecraft/aquilonthings/modules/AQLCalendar/AQLCalendar.md)
+
 
 ### AQLStaff ###
 Miscellaneous utilities for minecraft server staffs.
