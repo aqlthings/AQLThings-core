@@ -223,7 +223,7 @@ public class AQLChat implements IModule {
                         sender.sendMessage(ChatColor.YELLOW + "Vous venez de rejoindre le channel " + chan.getColor() + chan.getName());
                         return true;
                     } else {
-                        sender.sendMessage(ChatColor.RED + "Vous avez déjà rejoin ce channel ...");
+                        sender.sendMessage(ChatColor.RED + "Vous avez déjà rejoint ce channel ...");
                         return true;
                     }
                 } else {

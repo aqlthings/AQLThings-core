@@ -15,6 +15,8 @@ we recently started redacting a proper documentation. Feel free to help us out.
 
 Some parts of the code might be in French since it was initially developed in this language.
 
+See the [Wiki](https://github.com/aqlthings/AQLThings-core/wiki) for the (wip) documentation of the commands and configuration of the modules.
+
 ## Main concepts ##
 This plugin relies on a modular system.
 The core plugin provides the framework and each module add its own functionality.
@@ -70,7 +72,6 @@ Manages players roleplay names and descriptions.
 
 ### AQLNobles ###
 Custom module to give some players specific abilities.
-[See comands](src/main/java/fr/aquilon/minecraft/aquilonthings/modules/AQLNobles/AQLNobles.md)
 
 ### AQLPlaces ###
 Add custom events and actions to places in your world.
@@ -87,8 +88,6 @@ Send clients information about the borders of the current WorldGard area they ar
 _Requires client side modifications_
 
 Manages the current time (time of day and date) and seasons.
-[See comands](src/main/java/fr/aquilon/minecraft/aquilonthings/modules/AQLCalendar/AQLCalendar.md)
-
 
 ### AQLStaff ###
 Miscellaneous utilities for minecraft server staffs.
@@ -97,8 +96,8 @@ Miscellaneous utilities for minecraft server staffs.
 Allows some player to connect to the server without anyone knowing.
 
 ### AQLBabel ###
-Allows players to "speak" with differents languages by garblelling message for non locutors.
-[See comands](src/main/java/fr/aquilon/minecraft/aquilonthings/modules/AQLBabel/AQLBabel.md)
+Allows players to "speak" with differents languages by garbelling message for non locutors.
+
 
 ### And more ... ###
 Some other modules are still in development and haven't yet been merged in the master branch.
