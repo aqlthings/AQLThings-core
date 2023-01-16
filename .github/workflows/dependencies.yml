@@ -24,7 +24,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Submit Gradle dependencies
-        uses: mikepenz/gradle-dependency-submission@v0.7.1
+        uses: mikepenz/gradle-dependency-submission@{latest}
         with:
           use-gradlew: false
           gradle-build-configuration: compileClasspath
