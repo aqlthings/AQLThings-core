@@ -24,86 +24,15 @@ Modules can be dependent on each other and can use other plugins.
 Currently all modules are contained within a single JAR file
 however a dynamic module loading system is being developed.
 
-## Modules ##
-### AQLVox ###
-The HTTP API for AquilonThings. It runs a web server to expose an HTTP REST API.
+## Wiki
 
-AQLVox itself is subdivided in API modules, each AquilonThings module can register API modules
-to expose public routes.
-
-### AQLBlessures ###
-An injury manager. Keeps track of injured players and rolls new injuries automatically.
-
-### AQLCharacters ###
-_Still in Development_
-
-A roleplay character sheet directly interfaced with the game. It uses AQLVox to expose an API backend
-and a VueJS application as a frontend.
-
-### AQLChat ###
-A full-featured chat channel manager.
-
-### AQLEmotes ###
-_Requires client side modifications_
-
-Handles player emotes.
-
-### AQLFire ###
-Keep track of and fight fires.
-
-### AQLGroups ###
-_Requires external components_
-
-Automatically synchronise player groups and permissions with a PHPBB forum.
-
-### AQLLooting ###
-Add custom loots from your plugins.
-
-### AQLMarkers ###
-A marker system for maps and in-game teleportation.
-
-### AQLMisc ###
-Adds miscellaneous commands and world policies.
-
-### AQLNames ###
-Manages players roleplay names and descriptions.
-
-### AQLNobles ###
-Custom module to give some players specific abilities.
-
-### AQLPlaces ###
-Add custom events and actions to places in your world.
-
-### AQLRandoms ###
-A simple dice roller.
-
-### AQLRegionBorder ###
-_Requires client side modifications_
-
-Send clients information about the borders of the current WorldGard area they are in.
-
-### AQLSeason ###
-_Requires client side modifications_
-
-Manages the current time (time of day and date) and seasons.
-
-### AQLStaff ###
-Miscellaneous utilities for minecraft server staffs.
-
-### AQLVanish ###
-Allows some player to connect to the server without anyone knowing.
-
-### And more ... ###
-Some other modules are still in development and haven't yet been merged in the master branch.
-
- * AQLDonjon
- * AQLBabel
- * RandomEncounters
+Head over to the wiki to get more informations and details of each module: https://github.com/aqlthings/AQLThings-core/wiki
 
 ## Authors ##
 Main developers:
  * [BilliAlpha](https://github.com/BilliAlpha)
  * Termm
+ * Dniektr
 
 ## License ##
 This project is licensed under the [GNU General Public License v3.0](https://opensource.org/licenses/GPL-3.0)
