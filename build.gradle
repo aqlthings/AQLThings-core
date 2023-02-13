@@ -22,7 +22,7 @@ dependencies {
     compileOnly 'mysql:mysql-connector-java:8.0.32'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'org.nanohttpd:nanohttpd-websocket:2.3.1'
-    implementation 'com.auth0:java-jwt:4.2.2'
+    implementation 'com.auth0:java-jwt:4.3.0'
     compileOnly 'net.luckperms:api:5.4'
     implementation 'org.json:json:20230227'
 
