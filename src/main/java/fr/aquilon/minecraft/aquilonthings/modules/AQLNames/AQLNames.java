@@ -175,6 +175,7 @@ public class AQLNames implements IModule {
 		Player target = (Player) targetEntity;
 		Player source = e.getPlayer();
 		PlayerInfo targetInfo = getPlayerInfo(target.getUniqueId());
+		if (targetInfo == null) return; // it can happens when the player model is used for an NPC
 		String description = ChatColor.WHITE+targetInfo.getName()+ChatColor.GRAY+": * "+ChatColor.ITALIC+
 				targetInfo.getDescription("Une personne comme une autre") +ChatColor.RESET+ChatColor.GRAY+" *";
 		source.sendMessage(ChatColor.translateAlternateColorCodes('&', description));
