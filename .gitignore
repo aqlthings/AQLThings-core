@@ -24,6 +24,3 @@ target/
 
 # Linux temp files
 *~
-
-# gradle cache (might be a vscode extension which produce this)
-.gradle
