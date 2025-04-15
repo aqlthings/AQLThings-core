@@ -8,8 +8,10 @@ public class ChatPlayer {
     private String channel;
     private List<String> hiddenChannels;
     private List<String> channelBans;
+    /* hold last player who has messaged the concerned player */
+    private String lastMessaged = null;
 
-    public ChatPlayer(String channel){
+    public ChatPlayer(String channel) {
         this.channel = channel;
         this.hiddenChannels = new ArrayList<>();
         this.channelBans = new ArrayList<>();
@@ -70,4 +72,13 @@ public class ChatPlayer {
     public boolean isInChannel(ChatChannel chan) {
         return !isChannelHidden(chan.getName().toLowerCase()) && !isBannedFromChannel(chan.getName().toLowerCase());
     }
+
+    public void setLastMessaged(String recipient) {
+        this.lastMessaged = recipient;
+    }
+
+    public String getLastMessaged() {
+        return this.lastMessaged;
+    }
+
 }
