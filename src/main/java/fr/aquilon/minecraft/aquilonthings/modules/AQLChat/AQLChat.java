@@ -138,11 +138,11 @@ public class AQLChat implements IModule {
             Player player = Bukkit.getPlayer(args[0]);
             if (player == null) {
                 sender.sendMessage(ChatColor.RED + "Joueur introuvable");
-                return false;
+                return true;
             } else {
                 String recipient = player.getName();
                 String messageFeedback = ChatColor.DARK_PURPLE + "(à " + recipient + "): " + message;
-                message = ChatColor.LIGHT_PURPLE + "(de " + recipient + "): " + message;
+                message = ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message;
                 playerInfos.get(player.getUniqueId().toString()).setLastMessaged(sender.getName());
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageFeedback));
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
@@ -161,21 +161,21 @@ public class AQLChat implements IModule {
             Player senderPlayer = Bukkit.getPlayer(sender.getName());
             if (senderPlayer == null) {
                 sender.sendMessage(ChatColor.RED + "Vous avez disparu");
-                return false;
+                return true;
             }
             String replyPlayerName = playerInfos.get(senderPlayer.getUniqueId().toString()).getLastMessaged();
             if (replyPlayerName == null) {
                 sender.sendMessage(ChatColor.RED + "Personne ne t'as envoyé de message");
-                return false;
+                return true;
             } else {
                 Player replyPlayer = Bukkit.getPlayer(replyPlayerName);
                 if (replyPlayer == null) {
                     sender.sendMessage(ChatColor.RED + "Joueur introuvable");
-                    return false;
+                    return true;
                 } else {
                     String recipient = replyPlayer.getName();
                     String messageFeedback = ChatColor.DARK_PURPLE + "(à " + recipient + "): " + message;
-                    message = ChatColor.LIGHT_PURPLE + "(de " + recipient + "): " + message;
+                    message = ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message;
                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageFeedback));
                     replyPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
                     playerInfos.get(replyPlayer.getUniqueId().toString()).setLastMessaged(sender.getName());
