@@ -206,13 +206,13 @@ public class AQLChat implements IModule {
                 boolean ban = args[0].equalsIgnoreCase("ban");
 
                 if (args.length < 3) {
-                    sender.sendMessage(ChatColor.YELLOW + "Usage: " + ChatColor.WHITE + "/ch (ban/unban) <joueur> <channel>");
+                    sender.sendMessage(ChatColor.YELLOW + "Usage: "+ChatColor.WHITE+"/ch (ban/unban) <joueur> <channel>");
                     return true;
                 }
 
                 Player target = Bukkit.getOnlinePlayers().stream()
                         .filter(p -> p.getName().equals(args[1])).findFirst().orElse(null);
-                if (target == null) {
+                if (target==null) {
                     sender.sendMessage(ChatColor.RED + "De qui on parle ? Je le connais pas moi.");
                     return true;
                 }
@@ -242,15 +242,15 @@ public class AQLChat implements IModule {
 
                 if (success) {
                     sender.sendMessage(Utils.decoratePlayerName(target) + ChatColor.YELLOW +
-                        " a bien été "+act+" du channel " + chan.getColor() + chan.getName());
+                            " a bien été "+act+" du channel " + chan.getColor() + chan.getName());
                     LOGGER.mInfo(target.getName()+" "+(ban?"":"dé")+"banni du channel "+chan.getNick());
                     target.sendMessage(ChatColor.YELLOW+"Vous avez été "+act+" du channel "+
-                    chan.getColor() + chan.getName());
+                        chan.getColor() + chan.getName());
                 } else {
                     sender.sendMessage(ChatColor.YELLOW + "Impossible de " + act + "r " +
                             Utils.decoratePlayerName(target) + ChatColor.YELLOW +
                             " du channel " + chan.getColor() + chan.getName());
-                    LOGGER.mInfo("Impossible de "+act +"r "+ target.getName()+" du channel "+chan.getNick());
+                    LOGGER.mInfo("Impossible de "+act+"r "+target.getName()+" du channel "+chan.getNick());
                 }
                 return true;
             }
@@ -262,7 +262,7 @@ public class AQLChat implements IModule {
             Player p = (Player) sender;
             ChatPlayer pInfos = playerInfos.get(p.getUniqueId().toString());
             if (args[0].equalsIgnoreCase("join")) {
-                if (args.length < 2)return false;
+                if (args.length < 2) return false;
 
                 ChatChannel chan = findChannel(args[1]);
                 if (chan==null) {
@@ -356,7 +356,7 @@ public class AQLChat implements IModule {
 
                 if(pInfos.isChannelHidden(newChannel.getName())) {
                     pInfos.showChannel(newChannel.getName());
-                    for (Player player : Bukkit.getOnlinePlayers()){
+                    for(Player player : Bukkit.getOnlinePlayers()){
                         if (!player.hasPermission(chan.getReadPermission())) continue;
                         if (player.getName().equalsIgnoreCase(sender.getName())) continue;
                         player.sendMessage(ChatColor.YELLOW + "Le joueur " + Utils.decoratePlayerName(p) +
@@ -394,7 +394,7 @@ public class AQLChat implements IModule {
         String channelName = channelNicks.get(cmdName.toUpperCase());
         ChatChannel channel = channelList.get(channelName.toLowerCase());
 
-        if (channel!=null) {
+        if (channel!= null) {
             if (pInfos.isInChannel(channel)) {
                 if (p.hasPermission(channel.getSpeakPermission())) {
                     pInfos.setChannel(channel.getName());
@@ -463,7 +463,7 @@ public class AQLChat implements IModule {
                 chat = new AquilonChatEvent(p, chan, msg);
             } catch (InvalidArgumentEx e) {
                 if (e.getCode()==AquilonChatEvent.EX_CODE_MESSAGE_TOO_LONG) {
-                    p.sendMessage(ChatColor.RED + "Message trop long. (max " + AquilonChatEvent.MAX_LENGTH_MESSAGE + ")");
+                    p.sendMessage(ChatColor.RED+"Message trop long. (max "+AquilonChatEvent.MAX_LENGTH_MESSAGE+")");
                     return;
                 }
                 LOGGER.mWarning("Chat impossible, argument invalide ("+pInfos.getChannel()+")");
