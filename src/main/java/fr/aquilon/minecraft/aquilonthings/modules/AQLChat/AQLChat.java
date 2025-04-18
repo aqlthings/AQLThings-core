@@ -245,7 +245,7 @@ public class AQLChat implements IModule {
                             " a bien été "+act+" du channel " + chan.getColor() + chan.getName());
                     LOGGER.mInfo(target.getName()+" "+(ban?"":"dé")+"banni du channel "+chan.getNick());
                     target.sendMessage(ChatColor.YELLOW+"Vous avez été "+act+" du channel "+
-                        chan.getColor() + chan.getName());
+                            chan.getColor() + chan.getName());
                 } else {
                     sender.sendMessage(ChatColor.YELLOW + "Impossible de " + act + "r " +
                             Utils.decoratePlayerName(target) + ChatColor.YELLOW +
