@@ -145,12 +145,9 @@ public class AQLChat implements IModule {
                 sender.sendMessage(ChatColor.RED + "Joueur introuvable");
                 return true;
             } else {
-                String recipient = player.getName();
-                String messageFeedback = ChatColor.DARK_PURPLE + "(à " + recipient + "): " + message;
-                message = ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message;
                 playerInfos.get(player.getUniqueId().toString()).setLastMessaged(sender.getName());
-                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageFeedback));
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+                sender.sendMessage(ChatColor.DARK_PURPLE + "(à " + player.getName() + "): " + message);
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message);
             }
             return true;
         }
@@ -163,12 +160,11 @@ public class AQLChat implements IModule {
 
             String message = String.join(" ", Arrays.asList(args));
 
-            Player senderPlayer = Bukkit.getPlayer(sender.getName());
-            if (senderPlayer == null) {
-                sender.sendMessage(ChatColor.RED + "Vous avez disparu");
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.RED + "Tu causes pas depuis la console !");
                 return true;
             }
-            String replyPlayerName = playerInfos.get(senderPlayer.getUniqueId().toString()).getLastMessaged();
+            String replyPlayerName = playerInfos.get(((Player)sender).getUniqueId().toString()).getLastMessaged();
             if (replyPlayerName == null) {
                 sender.sendMessage(ChatColor.RED + "Personne ne t'as envoyé de message");
                 return true;
@@ -178,11 +174,8 @@ public class AQLChat implements IModule {
                     sender.sendMessage(ChatColor.RED + "Joueur introuvable");
                     return true;
                 } else {
-                    String recipient = replyPlayer.getName();
-                    String messageFeedback = ChatColor.DARK_PURPLE + "(à " + recipient + "): " + message;
-                    message = ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message;
-                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageFeedback));
-                    replyPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+                    sender.sendMessage(ChatColor.DARK_PURPLE + "(à " + replyPlayer.getName() + "): " + message);
+                    replyPlayer.sendMessage(ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message);
                     playerInfos.get(replyPlayer.getUniqueId().toString()).setLastMessaged(sender.getName());
                 }
             }
