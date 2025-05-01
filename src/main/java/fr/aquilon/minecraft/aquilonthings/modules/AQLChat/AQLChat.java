@@ -37,19 +37,23 @@ import java.util.Set;
 import java.util.UUID;
 
 @AQLThingsModule(
-        name = "AQLChat",
-        cmds = {
-                @Cmd(value = AQLChat.COMMAND_CH, desc = "Gestion des cannaux de chat"),
-                @Cmd(value = AQLChat.COMMAND_QMSG, desc = "Envoi de messages formatés")
-        },
-        inPackets = @InPacket(AQLChat.CHANNEL_CHAT_ICON),
-        outPackets = @OutPacket(AQLChat.CHANNEL_CHAT_ICON)
+    name = "AQLChat",
+    cmds = {
+        @Cmd(value = AQLChat.COMMAND_CH, desc = "Gestion des cannaux de chat"),
+        @Cmd(value = AQLChat.COMMAND_QMSG, desc = "Envoi de messages formatés"),
+        @Cmd(value = AQLChat.COMMAND_MSG, desc = "Message privé à un joueur"),
+        @Cmd(value = AQLChat.COMMAND_MSG_REPLY, desc = "Répondre à un message privé")
+    },
+    inPackets = @InPacket(AQLChat.CHANNEL_CHAT_ICON),
+    outPackets = @OutPacket(AQLChat.CHANNEL_CHAT_ICON)
 )
 public class AQLChat implements IModule {
     public static final ModuleLogger LOGGER = ModuleLogger.get();
 
     public static final String COMMAND_CH = "ch";
     public static final String COMMAND_QMSG = "qmsg";
+    public static final String COMMAND_MSG = "w";
+    public static final String COMMAND_MSG_REPLY = "r";
 
     public static final String CHANNEL_CHAT_ICON = "chat_icon";
 
@@ -123,6 +127,56 @@ public class AQLChat implements IModule {
                     return false;
                 } else {
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+                }
+            }
+            return true;
+        }
+
+        if (scmd.equalsIgnoreCase("w")) {
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + "Erreur dans les arguments de la commande");
+                return false;
+            }
+
+            String message = String.join(" ", Arrays.asList(args).subList(1, args.length));
+
+            Player player = Bukkit.getPlayer(args[0]);
+            if (player == null) {
+                sender.sendMessage(ChatColor.RED + "Joueur introuvable");
+                return true;
+            } else {
+                playerInfos.get(player.getUniqueId().toString()).setLastMessaged(sender.getName());
+                sender.sendMessage(ChatColor.DARK_PURPLE + "(à " + player.getName() + "): " + message);
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message);
+            }
+            return true;
+        }
+
+        if (scmd.equalsIgnoreCase("r")) {
+            if (args.length < 1) {
+                sender.sendMessage(ChatColor.RED + "Erreur dans les arguments de la commande");
+                return false;
+            }
+
+            String message = String.join(" ", Arrays.asList(args));
+
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.RED + "Tu causes pas depuis la console !");
+                return true;
+            }
+            String replyPlayerName = playerInfos.get(((Player)sender).getUniqueId().toString()).getLastMessaged();
+            if (replyPlayerName == null) {
+                sender.sendMessage(ChatColor.RED + "Personne ne t'as envoyé de message");
+                return true;
+            } else {
+                Player replyPlayer = Bukkit.getPlayer(replyPlayerName);
+                if (replyPlayer == null) {
+                    sender.sendMessage(ChatColor.RED + "Joueur introuvable");
+                    return true;
+                } else {
+                    sender.sendMessage(ChatColor.DARK_PURPLE + "(à " + replyPlayer.getName() + "): " + message);
+                    replyPlayer.sendMessage(ChatColor.LIGHT_PURPLE + "(de " + sender.getName() + "): " + message);
+                    playerInfos.get(replyPlayer.getUniqueId().toString()).setLastMessaged(sender.getName());
                 }
             }
             return true;
